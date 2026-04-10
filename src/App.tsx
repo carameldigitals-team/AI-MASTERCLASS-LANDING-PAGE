@@ -17,7 +17,15 @@ import {
   ArrowRight,
   ShieldCheck,
   MessageSquare,
-  Linkedin
+  Linkedin,
+  Instagram,
+  Mail,
+  ExternalLink,
+  AlertCircle,
+  TrendingDown,
+  Timer,
+  Gift,
+  Award
 } from 'lucide-react';
 
 // --- Types ---
@@ -34,7 +42,7 @@ const SectionBadge = ({ children }: { children: ReactNode }) => (
     whileInView={{ opacity: 1, scale: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-    className="inline-flex items-center bg-brand-gold/10 border border-brand-gold/20 rounded-full px-6 py-2 mb-8 shadow-lg shadow-brand-gold/5"
+    className="inline-flex items-center bg-brand-blue-navy/60 border border-brand-gold/30 rounded-full px-6 py-2 mb-8 shadow-lg shadow-brand-gold/5"
   >
     <span className="text-[10px] md:text-xs font-mono tracking-[0.3em] uppercase text-brand-gold-light font-bold">
       {children}
@@ -76,7 +84,7 @@ const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-brand-blue-dark/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-brand-blue-navy/80 backdrop-blur-sm"
         />
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -254,21 +262,21 @@ const SkillRow = ({ num, title, description, income }: { num: string, title: str
         {num}
       </div>
       <div className="flex-1">
-        <h3 className="text-brand-off-white font-bold text-2xl mb-3 group-hover:text-brand-gold-light transition-colors duration-500 tracking-tight">
+        <h3 className="text-brand-off-white font-bold text-xl mb-3 group-hover:text-brand-gold-light transition-colors duration-500 tracking-tight">
           {title}
         </h3>
-        <p className="text-brand-off-white/90 text-base md:text-lg leading-relaxed mb-6 font-normal">
+        <p className="text-brand-off-white/90 text-sm md:text-base leading-relaxed mb-6 font-normal">
           {description}
         </p>
-        <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-lg px-4 py-2 text-sm font-bold text-brand-gold-light font-mono">
-          <Zap className="w-4 h-4" /> {income}
+        <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-lg px-3 py-1.5 text-xs font-bold text-brand-gold-light font-mono">
+          <Zap className="w-3.5 h-3.5" /> {income}
         </div>
       </div>
     </div>
   </motion.div>
 );
 
-const PriceCard = ({ tier, amount, was, includes, featured = false, index }: { tier: string, amount: string, was: string, includes: string[], featured?: boolean, index: number }) => (
+const PriceCard = ({ tier, amount, was, usd, usdWas, includes, featured = false, index }: { tier: string, amount: string, was: string, usd: string, usdWas: string, includes: string[], featured?: boolean, index: number }) => (
   <motion.div
     initial={{ opacity: 0, y: 50, scale: 0.9 }}
     whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -303,14 +311,15 @@ const PriceCard = ({ tier, amount, was, includes, featured = false, index }: { t
       <p className="text-[11px] font-mono tracking-[0.3em] uppercase text-brand-off-white mb-6 font-bold">
         {tier}
       </p>
-      <div className="flex items-start gap-1 mb-1">
-        <span className="text-2xl font-serif text-brand-gold-light mt-2">₦</span>
-        <span className="text-6xl font-serif font-black text-brand-gold-light leading-none tracking-tighter">
+      <div className="flex items-baseline gap-1 mb-1">
+        <span className="text-xl font-serif text-brand-gold-light">₦</span>
+        <span className="text-4xl font-serif font-black text-brand-gold-light leading-none tracking-tighter">
           {amount}
         </span>
+        <span className="text-base font-serif text-brand-gold-pale ml-1">(${usd})</span>
       </div>
-      <p className="text-sm text-brand-off-white/80 line-through mb-8 font-mono">
-        Was ₦{was}
+      <p className="text-xs text-brand-off-white/80 line-through mb-8 font-mono">
+        Was ₦{was} (${usdWas})
       </p>
       <div className="space-y-4">
         {includes.map((item, i) => (
@@ -415,11 +424,11 @@ const AuthoritySection = () => (
         className="w-full lg:w-1/2 text-center lg:text-left"
       >
         <SectionBadge>Meet Your Strategist & TUTOR</SectionBadge>
-        <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6 leading-tight">
+        <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6 leading-tight">
           Elizabeth <span className="italic text-brand-gold-light">Emmanuel</span>
         </h2>
         
-        <div className="space-y-6 text-brand-off-white/90 text-lg leading-relaxed mb-10 max-w-2xl mx-auto lg:mx-0">
+        <div className="space-y-6 text-brand-off-white/90 text-base leading-relaxed mb-10 max-w-2xl mx-auto lg:mx-0">
           <p>
             <span className="text-brand-off-white font-semibold">Digital Skills Guide, Online Business & AI Monetization Strategist</span> helping professionals reclaim their time and multiply their income through intelligent automations.
           </p>
@@ -575,13 +584,12 @@ export default function App() {
           className="relative z-10"
         >
           <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-5 py-2 mb-8">
-            <div className="w-1.5 h-1.5 rounded-full bg-brand-gold-light animate-pulse" />
             <span className="text-xs md:text-sm font-mono tracking-[0.2em] uppercase text-brand-gold-light">
-              🔥 Waitlist Now Open — Limited Spots
+              ⭐ INTRODUCING THE AI W.A.V.E. MASTERCLASS — LIMITED SEATS AVAILABLE
             </span>
           </div>
 
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] max-w-4xl mx-auto mb-8 tracking-tight">
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black leading-[0.95] max-w-4xl mx-auto mb-8 tracking-tight">
             <span className="italic text-brand-gold-light">4 AI Skills</span>
             <br />
             That Pay You
@@ -589,13 +597,13 @@ export default function App() {
             <span className="text-brand-gold">Real Money</span>
           </h1>
 
-    <p className="text-brand-off-white text-lg md:text-xl max-w-2xl mx-auto font-normal leading-relaxed mb-12 px-4">
-      A <span className="text-brand-gold-pale font-medium italic">live masterclass + recorded replay</span> where you watch me build — on screen, from scratch — the exact AI-powered income systems Nigerian professionals are using to earn <span className="text-brand-gold-pale font-bold border-b border-brand-gold/30">₦200K–₦800K+</span> per month.
+    <p className="text-brand-off-white text-base md:text-lg max-w-2xl mx-auto font-normal leading-relaxed mb-12 px-4">
+      Watch me build the exact AI systems Ambitious African Professionals use to earn <span className="text-brand-gold-pale font-bold border-b border-brand-gold/30">₦200K–₦800K+ ($133–$533+)</span> monthly. <span className="text-brand-gold-light font-bold">Join the waitlist now to lock in your 60% discount</span> before the price jumps to ₦25,000.
     </p>
 
           <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-12 max-w-3xl mx-auto px-4">
             {['Build Websites with AI', 'Create Professional Videos Without Camera', 'Build & Sell Digital Products', 'Automate Business Systems'].map((skill, i) => (
-              <div key={i} className="bg-brand-blue-navy/40 backdrop-blur-sm border border-brand-gold/10 rounded-full px-4 py-2 text-sm md:text-base font-medium text-brand-gold-pale flex items-center gap-2">
+              <div key={i} className="bg-brand-blue-navy/40 backdrop-blur-sm border border-brand-gold/10 rounded-full px-4 py-2 text-xs md:text-sm font-medium text-brand-gold-pale flex items-center gap-2">
                 <span className="font-mono text-[10px] text-brand-gold font-bold bg-brand-gold/10 w-5 h-5 rounded-full flex items-center justify-center">0{i+1}</span>
                 {skill}
               </div>
@@ -604,14 +612,14 @@ export default function App() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto bg-brand-blue-navy/40 backdrop-blur-md border border-brand-gold/10 rounded-2xl p-6 md:p-8 mb-16 shadow-2xl shadow-black/50">
             {[
-              { amount: '₦200K–500K', label: 'Per website built' },
-              { amount: '₦500K–2M+', label: 'Monthly (video creators)' },
-              { amount: '₦3K–50K', label: 'Per digital product' },
-              { amount: '₦800K+', label: 'Automation retainers' }
+              { amount: '₦200K–500K ($133–$333)', label: 'Per website built' },
+              { amount: '₦500K–2M+ ($333–$1,333+)', label: 'Monthly (video creators)' },
+              { amount: '₦3K–50K ($2–$33)', label: 'Per digital product' },
+              { amount: '₦800K+ ($533+)', label: 'Automation retainers' }
             ].map((item, i) => (
               <div key={i} className="text-center group">
-                <span className="block font-serif text-xl md:text-2xl font-bold text-brand-gold-light group-hover:scale-110 transition-transform duration-300">{item.amount}</span>
-                <span className="text-[10px] uppercase tracking-[0.15em] text-brand-off-white/80 font-mono mt-1 block">{item.label}</span>
+                <span className="block font-serif text-sm md:text-base font-bold text-brand-gold-light group-hover:scale-105 transition-transform duration-300">{item.amount}</span>
+                <span className="text-[9px] uppercase tracking-[0.15em] text-brand-off-white/80 font-mono mt-1 block">{item.label}</span>
               </div>
             ))}
           </div>
@@ -662,23 +670,77 @@ export default function App() {
             { num: '0', lbl: 'Prior Tech Skills Needed' }
           ].map((stat, i) => (
             <div key={i} className="text-center group">
-              <span className="block font-serif text-4xl md:text-5xl font-black text-brand-gold-light mb-2 group-hover:scale-105 transition-transform duration-500">{stat.num}</span>
-              <span className="text-[10px] uppercase tracking-[0.2em] text-brand-off-white/90 font-mono font-bold">{stat.lbl}</span>
+              <span className="block font-serif text-2xl md:text-3xl font-black text-brand-gold-light mb-2 group-hover:scale-105 transition-transform duration-500">{stat.num}</span>
+              <span className="text-[9px] uppercase tracking-[0.2em] text-brand-off-white/90 font-mono font-bold">{stat.lbl}</span>
             </div>
           ))}
         </div>
       </div>
 
+      {/* --- The Problem Section --- */}
+      <section className="py-24 px-6 bg-brand-blue-dark relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-gold/20 to-transparent" />
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <SectionBadge>The Hard Truth</SectionBadge>
+            <h2 className="font-serif text-3xl md:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              Why Most Professionals are <span className="italic text-brand-gold-light">Working Harder</span> but Earning Less.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {[
+              { 
+                icon: TrendingDown, 
+                title: "Inflation is Eating Your Salary", 
+                desc: "Your fixed income is losing value every single day. If you aren't earning in a way that scales, you're falling behind." 
+              },
+              { 
+                icon: AlertCircle, 
+                title: "Traditional Skills are Fading", 
+                desc: "The 'old way' of doing business is slow and expensive. AI is replacing tasks, but it's empowering those who know how to use it." 
+              },
+              { 
+                icon: Clock, 
+                title: "The 'Busy' Trap", 
+                desc: "You're spending 10+ hours a day on manual tasks that an AI could do in 30 seconds. You don't have a time problem; you have a system problem." 
+              },
+              { 
+                icon: Zap, 
+                title: "The AI Gap is Widening", 
+                desc: "There are two types of professionals in 2026: those who use AI to multiply their output, and those who are replaced by them." 
+              }
+            ].map((item, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="flex gap-6 p-6 rounded-2xl bg-brand-blue-navy/30 border border-white/5 hover:border-brand-gold/20 transition-all duration-300"
+              >
+                <div className="bg-brand-gold/10 p-3 rounded-xl h-fit">
+                  <item.icon className="w-6 h-6 text-brand-gold" />
+                </div>
+                <div>
+                  <h4 className="text-brand-off-white font-bold text-lg mb-2">{item.title}</h4>
+                  <p className="text-brand-off-white/70 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* --- Who This Is For --- */}
       <section className="py-20 px-6 max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <SectionBadge>This Is For You</SectionBadge>
-          <h2 className="font-serif text-4xl md:text-6xl font-bold mb-8 leading-[1.1] tracking-tight">
+          <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
             You Don't Need a Tech Background.<br />
             You Need the <span className="italic text-brand-gold-light">Right System.</span>
           </h2>
-          <p className="text-brand-off-white text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-normal">
-            This masterclass was built for Nigerians who know AI is the future — but haven't figured out how to turn it into actual income yet.
+          <p className="text-brand-off-white text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-normal">
+            This masterclass was built for Ambitious African Professionals who know AI is the future — but haven't figured out how to turn it into actual income yet.
           </p>
         </div>
 
@@ -701,8 +763,8 @@ export default function App() {
               <div className="bg-brand-gold/10 w-14 h-14 rounded-xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-brand-gold/20 transition-all duration-500">
                 <item.icon className="w-7 h-7 text-brand-gold" />
               </div>
-              <h4 className="text-brand-off-white font-bold mb-4 text-2xl tracking-tight">{item.title}</h4>
-              <p className="text-brand-off-white/90 text-base leading-relaxed font-normal">{item.desc}</p>
+              <h4 className="text-brand-off-white font-bold mb-4 text-xl tracking-tight">{item.title}</h4>
+              <p className="text-brand-off-white/90 text-sm leading-relaxed font-normal">{item.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -715,40 +777,67 @@ export default function App() {
       <section className="py-20 px-6 max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <SectionBadge>What You'll Learn</SectionBadge>
-          <h2 className="font-serif text-4xl md:text-6xl font-bold mb-8 leading-[1.1] tracking-tight">
+          <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
             Four Skills. Four <span className="italic text-brand-gold-light">Live Builds.</span><br />
             Zero Pre-Made Shortcuts.
           </h2>
-          <p className="text-brand-off-white text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-normal">
+          <p className="text-brand-off-white text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-normal">
             Every skill is built from scratch, on my screen, in real time. You see every prompt, every tool, every step.
           </p>
         </div>
 
         <div className="space-y-8">
           <SkillRow 
-            num="01" 
-            title="Build a Full Professional Website — From a Single Prompt" 
-            description="A clean, multi-page site. Homepage, services, testimonials, contact form. No coding. Done in minutes. Watch me build it live."
-            income="₦200,000 – ₦500,000 per site"
+            num="W" 
+            title="AI-Built Websites" 
+            description="Fast-track your online presence."
+            income="₦200,000 – ₦500,000 ($133 – $333) per site"
           />
           <SkillRow 
-            num="02" 
-            title="Create Professional Videos Without Camera" 
-            description="Instagram Reels with professional voiceover and clean transitions. Full YouTube videos — without ever appearing on camera."
-            income="₦30,000 – ₦100,000 per video | ₦500K–₦2M+ monthly"
+            num="A" 
+            title="Business Automation" 
+            description="Reclaim your time and scale your operations."
+            income="₦50,000 – ₦800,000 ($33 – $533) per project"
           />
           <SkillRow 
-            num="03" 
-            title="Build a Digital Product From Scratch — In One Sitting" 
-            description="An ebook, a template pack, a guide — fully outlined, drafted, designed, and paired with a sales page. All in one sitting."
-            income="₦3,000 – ₦50,000 per product sold"
+            num="V" 
+            title="Realistic AI Videos" 
+            description="Create engaging content without being on camera."
+            income="₦30,000 – ₦100,000 ($20 – $66) per video"
           />
           <SkillRow 
-            num="04" 
-            title="Automate a Business Process in 15 Minutes" 
-            description="A complete lead capture and follow-up system. Form, CRM, welcome email, automated responses. AI-powered version."
-            income="₦50,000 – ₦800,000 per project + retainer"
+            num="E" 
+            title="Digital Products" 
+            description="Turn your expertise into passive income."
+            income="₦3,000 – ₦50,000 ($2 – $33) per product"
           />
+        </div>
+
+        {/* --- The Timeline Section --- */}
+        <div className="mt-24 max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <SectionBadge>The Afternoon Roadmap</SectionBadge>
+            <h3 className="font-serif text-2xl md:text-4xl font-bold mb-4">What Happens During the <span className="italic text-brand-gold-light">Live Build?</span></h3>
+            <p className="text-brand-off-white/70 text-sm md:text-base">We don't just talk. We build. Here is the exact schedule.</p>
+          </div>
+
+          <div className="relative border-l-2 border-brand-gold/20 ml-4 md:ml-0 md:left-1/2 md:-translate-x-px space-y-12">
+            {[
+              { time: "2:00 PM", title: "AI Foundations & Command Center", desc: "Setting up the exact tools and prompts I use to run my entire digital academy." },
+              { time: "3:00 PM", title: "The 15-Minute AI Website Build", desc: "Watch me build a professional, high-converting website live on screen using AI." },
+              { time: "4:00 PM", title: "Viral AI Video & Content Creation", desc: "How to create professional videos and social content without ever showing your face." },
+              { time: "5:00 PM", title: "Monetization Systems & Live Q&A", desc: "The exact steps to turn these skills into a consistent income stream starting today." }
+            ].map((step, i) => (
+              <div key={i} className="relative pl-8 md:pl-0">
+                <div className="absolute -left-[9px] md:left-1/2 md:-translate-x-1/2 top-0 w-4 h-4 rounded-full bg-brand-gold border-4 border-brand-blue-dark shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
+                <div className={`md:w-[45%] ${i % 2 === 0 ? 'md:mr-auto md:text-right md:pr-12' : 'md:ml-auto md:text-left md:pl-12'}`}>
+                  <span className="inline-block font-mono text-xs font-bold text-brand-gold bg-brand-gold/10 px-3 py-1 rounded-full mb-2">{step.time}</span>
+                  <h4 className="text-brand-off-white font-bold text-lg mb-2">{step.title}</h4>
+                  <p className="text-brand-off-white/70 text-sm leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -756,22 +845,85 @@ export default function App() {
       <section className="pt-10 pb-4 overflow-hidden">
         <div className="text-center mb-8 px-6">
           <SectionBadge>Wall of Love</SectionBadge>
-          <h2 className="font-serif text-4xl md:text-5xl font-bold mb-6 leading-tight">
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6 leading-tight">
             Real Results from <span className="italic text-brand-gold-light">Real Students.</span>
           </h2>
         </div>
         <TestimonialMarquee />
       </section>
 
+      {/* --- Bonuses Section --- */}
+      <section className="py-20 px-6 bg-brand-gold/5 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <SectionBadge>Waitlist Exclusives</SectionBadge>
+            <h2 className="font-serif text-3xl md:text-5xl font-bold mb-6 leading-tight">
+              Stacking the Value for <span className="italic text-brand-gold-light">Your Success.</span>
+            </h2>
+            <p className="text-brand-off-white/80 text-base md:text-lg max-w-2xl mx-auto">
+              Join the waitlist today and get these high-value bonuses for <span className="text-brand-gold-light font-bold">FREE</span> when you eventually register.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { 
+                title: "The AI Prompt Vault", 
+                val: "₦15,000", 
+                desc: "50+ high-converting prompts for marketing, sales, and content creation.",
+                icon: Gift
+              },
+              { 
+                title: "The Professional's AI Starter Kit", 
+                val: "₦20,000", 
+                desc: "The essential software and AI tools every professional needs to automate their workflow and boost productivity.",
+                icon: Briefcase
+              },
+              { 
+                title: "Private Community Access", 
+                val: "₦25,000", 
+                desc: "90 days of priority support and networking with other Ambitious Professionals.",
+                icon: Users
+              }
+            ].map((bonus, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="glass-card p-8 rounded-2xl border-t-4 border-t-brand-gold relative group"
+              >
+                <div className="absolute -top-4 -right-4 bg-brand-gold text-brand-blue-dark text-[10px] font-bold px-3 py-1 rounded-lg shadow-lg">
+                  VALUE: {bonus.val}
+                </div>
+                <div className="bg-brand-gold/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <bonus.icon className="w-6 h-6 text-brand-gold" />
+                </div>
+                <h4 className="text-brand-off-white font-bold text-xl mb-3">{bonus.title}</h4>
+                <p className="text-brand-off-white/70 text-sm leading-relaxed">{bonus.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-16 text-center">
+            <div className="inline-block bg-brand-gold/10 border border-brand-gold/30 rounded-2xl p-6 md:p-8">
+              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦60,000 ($40)</p>
+              <p className="text-brand-off-white/80 text-sm">Yours <span className="text-brand-gold font-bold">FREE</span> just for joining the waitlist today.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* --- Pricing --- */}
       <section className="pt-8 pb-20 px-6 max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <SectionBadge>Investment</SectionBadge>
-          <h2 className="font-serif text-4xl md:text-6xl font-bold mb-8 leading-[1.1] tracking-tight">
+          <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
             Simple Pricing.<br /><span className="italic text-brand-gold-light">Exceptional</span> Value.
           </h2>
-          <p className="text-brand-off-white text-lg md:text-xl max-w-xl mx-auto leading-relaxed font-normal">
-            This is a founding price — available only to waitlist members who register before the timer hits zero.
+          <p className="text-brand-off-white text-base md:text-lg max-w-xl mx-auto leading-relaxed font-normal">
+            This 60% discount is <span className="text-brand-gold-light font-bold underline">exclusive</span> to waitlist members. Once the timer hits zero, the price returns to ₦25,000 for everyone else.
           </p>
         </div>
 
@@ -781,6 +933,8 @@ export default function App() {
             tier="Standard Access"
             amount="9,999"
             was="25,000"
+            usd="7"
+            usdWas="17"
             includes={[
               'Live masterclass access',
               'Recorded replay (48-hour access)',
@@ -794,6 +948,8 @@ export default function App() {
             tier="VIP Access"
             amount="19,999"
             was="50,000"
+            usd="13"
+            usdWas="33"
             includes={[
               'Everything in Standard',
               'Lifetime replay access',
@@ -810,7 +966,7 @@ export default function App() {
       <section className="pt-16 pb-8 px-6 max-w-3xl mx-auto">
         <div className="text-center mb-10">
           <SectionBadge>Common Questions</SectionBadge>
-          <h2 className="font-serif text-4xl font-bold mb-6 leading-tight">
+          <h2 className="font-serif text-3xl font-bold mb-6 leading-tight">
             Before You Ask —<br /><span className="italic text-brand-gold-light">Here's</span> What People Want to Know
           </h2>
         </div>
@@ -844,11 +1000,11 @@ export default function App() {
         <div className="absolute inset-0 bg-brand-gold/5 blur-[100px] rounded-full translate-y-1/2" />
         <div className="relative z-10 max-w-3xl mx-auto">
           <SectionBadge>Last Chance</SectionBadge>
-          <h2 className="font-serif text-4xl md:text-6xl font-bold mb-8 leading-tight">
+          <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-tight">
             Stop Watching AI Make Other People Rich.<br /><span className="italic text-brand-gold-light">Your Spot is Waiting.</span>
           </h2>
-          <p className="text-brand-off-white/90 text-xl mb-12 max-w-xl mx-auto leading-relaxed font-normal">
-            50 early-bird spots. Founding price. Live builds on screen. Everything you need to start earning with AI — in one afternoon.
+          <p className="text-brand-off-white/90 text-lg mb-12 max-w-xl mx-auto leading-relaxed font-normal">
+            Don't pay ₦25,000 later. Join the waitlist now to <span className="text-brand-gold-light font-bold">lock in your 60% discount</span> and secure your spot for just ₦9,999.
           </p>
 
           <button 
@@ -861,15 +1017,77 @@ export default function App() {
       </section>
 
       {/* --- Footer --- */}
-      <footer className="bg-brand-blue-navy border-t border-brand-gold/10 py-16 px-6 text-center">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-lg text-brand-off-white/80 mb-6">
-            © 2026 <span className="text-brand-gold font-bold">Caramel Digital Academy</span> · Built by Elizabeth O. Emmanuel · All rights reserved.
-          </p>
-          <div className="flex justify-center gap-8 text-brand-off-white/80 text-lg">
-            <a href="#" className="hover:text-brand-gold transition-colors flex items-center gap-1">
-              <ShieldCheck className="w-4 h-4" /> Privacy Policy
-            </a>
+      <footer className="bg-brand-blue-navy border-t border-brand-gold/10 pt-20 pb-10 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            {/* Brand Column */}
+            <div className="space-y-6">
+              <div className="font-serif text-2xl font-bold">
+                <span className="text-brand-gold">Caramel</span>
+                <span className="text-brand-off-white"> Digital Academy</span>
+              </div>
+              <p className="text-brand-off-white/70 text-sm leading-relaxed max-w-xs">
+                Empowering Ambitious African Professionals to reclaim their time and multiply their income through the power of AI and intelligent automation.
+              </p>
+              <div className="flex gap-4">
+                <a href="https://www.linkedin.com/in/elizabeth-emmanuel-carameldigi" target="_blank" rel="noopener noreferrer" className="bg-brand-gold/10 p-2 rounded-lg text-brand-gold hover:bg-brand-gold hover:text-brand-blue-dark transition-all">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a href="#" className="bg-brand-gold/10 p-2 rounded-lg text-brand-gold hover:bg-brand-gold hover:text-brand-blue-dark transition-all">
+                  <Instagram className="w-5 h-5" />
+                </a>
+                <a href="mailto:support@carameldigital.com" className="bg-brand-gold/10 p-2 rounded-lg text-brand-gold hover:bg-brand-gold hover:text-brand-blue-dark transition-all">
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-brand-off-white font-bold mb-6 uppercase tracking-widest text-xs">Quick Links</h4>
+              <ul className="space-y-4 text-sm text-brand-off-white/70">
+                <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-brand-gold transition-colors">Join Waitlist</button></li>
+                <li><a href="#about" className="hover:text-brand-gold transition-colors">About Elizabeth</a></li>
+                <li><a href="#skills" className="hover:text-brand-gold transition-colors">W.A.V.E. Skills</a></li>
+                <li><a href="#pricing" className="hover:text-brand-gold transition-colors">Pricing Tiers</a></li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h4 className="text-brand-off-white font-bold mb-6 uppercase tracking-widest text-xs">Support & Legal</h4>
+              <ul className="space-y-4 text-sm text-brand-off-white/70">
+                <li><a href="#" className="hover:text-brand-gold transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-brand-gold transition-colors">Terms & Conditions</a></li>
+                <li><a href="#" className="hover:text-brand-gold transition-colors">Earnings Disclaimer</a></li>
+                <li><a href="#" className="hover:text-brand-gold transition-colors">Contact Support</a></li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h4 className="text-brand-off-white font-bold mb-6 uppercase tracking-widest text-xs">Get In Touch</h4>
+              <p className="text-brand-off-white/70 text-sm leading-relaxed mb-4">
+                Have questions about the AI W.A.V.E. Masterclass?
+              </p>
+              <a 
+                href="https://wa.link/7srq2i" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-brand-gold font-bold text-sm hover:underline"
+              >
+                Chat with us on WhatsApp <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-brand-gold/10 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-xs text-brand-off-white/50 text-center md:text-left">
+              © 2026 <span className="text-brand-gold font-bold">Caramel Digital Academy</span>. All rights reserved. Built by Elizabeth O. Emmanuel.
+            </p>
+            <p className="text-[10px] text-brand-off-white/30 max-w-md text-center md:text-right leading-relaxed">
+              Disclaimer: The income figures mentioned are potential earnings based on industry standards. Your results may vary depending on your effort, skill level, and market conditions.
+            </p>
           </div>
         </div>
       </footer>
