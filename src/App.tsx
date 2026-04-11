@@ -25,7 +25,8 @@ import {
   TrendingDown,
   Timer,
   Gift,
-  Award
+  Award,
+  XCircle
 } from 'lucide-react';
 
 // --- Types ---
@@ -215,12 +216,14 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
           </label>
         </div>
 
-        <button 
+        <motion.button 
           disabled={isSubmitting}
           className="premium-button w-full"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           {isSubmitting ? 'SUBMITTING...' : 'JOIN THE WAITLIST NOW'} <ArrowRight className="w-5 h-5" />
-        </button>
+        </motion.button>
         <p className="text-xs text-brand-off-white/90 font-medium flex items-center justify-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-gold" /> No spam. Your privacy is our priority.
         </p>
@@ -770,6 +773,51 @@ export default function App() {
         </div>
       </section>
 
+      {/* --- Who This Is Not For --- */}
+      <section className="py-20 px-6 bg-brand-blue-navy/30 border-y border-brand-gold/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <SectionBadge>Not For Everyone</SectionBadge>
+            <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
+              🚫 Who This Is <span className="italic text-brand-gold-light">NOT</span> For
+            </h2>
+            <p className="text-brand-off-white text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-normal">
+              This masterclass is not for everyone and that's intentional. Please do not register if:
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              "You're looking for a \"get rich overnight\" scheme with zero effort involved",
+              "You're not willing to show up, pay attention, and take action on what you learn",
+              "You're expecting someone to build your business for you while you watch passively",
+              "You're not ready to invest even a few hours a week practicing what you've learned"
+            ].map((text, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="flex gap-4 p-6 rounded-xl bg-red-500/5 border border-red-500/20"
+              >
+                <XCircle className="w-6 h-6 text-red-500 shrink-0" />
+                <p className="text-brand-off-white/90 text-sm md:text-base leading-relaxed">{text}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-16 text-center">
+            <p className="text-brand-off-white text-lg md:text-xl font-medium mb-6">
+              This masterclass is built for <span className="text-brand-gold font-bold">doers</span> — people who just needed the right system shown to them clearly.
+            </p>
+            <p className="text-brand-gold-light font-serif text-2xl md:text-3xl font-bold italic">
+              If that's you, your spot is WAITING...
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* --- Authority Section --- */}
       <AuthoritySection />
 
@@ -816,17 +864,17 @@ export default function App() {
         {/* --- The Timeline Section --- */}
         <div className="mt-24 max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <SectionBadge>The Afternoon Roadmap</SectionBadge>
+            <SectionBadge>The Evening Roadmap</SectionBadge>
             <h3 className="font-serif text-2xl md:text-4xl font-bold mb-4">What Happens During the <span className="italic text-brand-gold-light">Live Build?</span></h3>
-            <p className="text-brand-off-white/70 text-sm md:text-base">We don't just talk. We build. Here is the exact schedule.</p>
+            <p className="text-brand-off-white/70 text-sm md:text-base">We don't just talk. We build. Here is the exact evening schedule.</p>
           </div>
 
           <div className="relative border-l-2 border-brand-gold/20 ml-4 md:ml-0 md:left-1/2 md:-translate-x-px space-y-12">
             {[
-              { time: "2:00 PM", title: "AI Foundations & Command Center", desc: "Setting up the exact tools and prompts I use to run my entire digital academy." },
-              { time: "3:00 PM", title: "The 15-Minute AI Website Build", desc: "Watch me build a professional, high-converting website live on screen using AI." },
-              { time: "4:00 PM", title: "Viral AI Video & Content Creation", desc: "How to create professional videos and social content without ever showing your face." },
-              { time: "5:00 PM", title: "Monetization Systems & Live Q&A", desc: "The exact steps to turn these skills into a consistent income stream starting today." }
+              { time: "8:00 PM", title: "AI Foundations & Command Center", desc: "Setting up the exact tools and prompts you can use to run an entire digital business." },
+              { time: "8:30 PM", title: "The 15-Minute AI Website Build", desc: "Watch me build a professional, high-converting website live on screen using AI." },
+              { time: "9:00 PM", title: "Viral AI Video & Content Creation", desc: "How to create professional videos and social content without ever showing your face." },
+              { time: "9:30 PM", title: "Monetization Systems & Live Q&A", desc: "The exact steps to turn these skills into a consistent income stream starting today." }
             ].map((step, i) => (
               <div key={i} className="relative pl-8 md:pl-0">
                 <div className="absolute -left-[9px] md:left-1/2 md:-translate-x-1/2 top-0 w-4 h-4 rounded-full bg-brand-gold border-4 border-brand-blue-dark shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
@@ -865,50 +913,92 @@ export default function App() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { 
                 title: "The AI Prompt Vault", 
                 val: "₦15,000", 
                 desc: "50+ high-converting prompts for marketing, sales, and content creation.",
-                icon: Gift
+                image: "https://i.ibb.co/hTnK1Tv/Untitled-design-20260204-000327-0000.png"
               },
               { 
-                title: "The Professional's AI Starter Kit", 
+                title: "African Digital Income Starter Kit", 
                 val: "₦20,000", 
                 desc: "The essential software and AI tools every professional needs to automate their workflow and boost productivity.",
-                icon: Briefcase
+                image: "https://i.ibb.co/gMqbxZJ4/Untitled-design-20260204-000236-0000.png"
+              },
+              { 
+                title: "Personal Self Discovery Prompt", 
+                val: "₦10,000", 
+                desc: "A powerful AI-driven framework to help you uncover your unique strengths and career path.",
+                image: "https://i.ibb.co/mFvx0FJf/1775902543989.jpg"
               },
               { 
                 title: "Private Community Access", 
                 val: "₦25,000", 
                 desc: "90 days of priority support and networking with other Ambitious Professionals.",
-                icon: Users
+                image: "https://i.ibb.co/0jBY0MNr/1775903459725.jpg"
               }
             ].map((bonus, i) => (
               <motion.div 
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="glass-card p-8 rounded-2xl border-t-4 border-t-brand-gold relative group"
+                initial={
+                  i === 0 ? { opacity: 0, x: -150 } :
+                  i === 1 ? { opacity: 0, scale: 0.1 } :
+                  i === 2 ? { opacity: 0, x: 150 } :
+                  { opacity: 0, y: 100 }
+                }
+                whileInView={
+                  i === 1 ? { opacity: 1, scale: 1 } :
+                  { opacity: 1, x: 0, y: 0 }
+                }
+                viewport={{ amount: 0.2 }}
+                transition={{ 
+                  type: 'spring', 
+                  stiffness: 70, 
+                  damping: 12, 
+                  delay: i * 0.15 
+                }}
+                whileHover={{ y: -10, scale: 1.02, transition: { duration: 0.2 } }}
+                className={`glass-card p-6 rounded-2xl border-t-4 border-t-brand-gold relative group flex flex-col ${i === 3 ? 'ring-4 ring-brand-gold/30 shadow-[0_0_30px_rgba(212,175,55,0.4)]' : ''}`}
               >
-                <div className="absolute -top-4 -right-4 bg-brand-gold text-brand-blue-dark text-[10px] font-bold px-3 py-1 rounded-lg shadow-lg">
+                {/* Attention Grabber for 4th Bonus */}
+                {i === 3 && (
+                  <motion.div 
+                    animate={{ 
+                      opacity: [0, 1, 0],
+                      scale: [1, 1.05, 1]
+                    }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute inset-0 rounded-2xl bg-brand-gold/5 pointer-events-none z-0"
+                  />
+                )}
+                <div className="absolute -top-4 -right-2 bg-brand-gold text-brand-blue-dark text-[10px] font-bold px-3 py-1 rounded-lg shadow-lg z-10">
                   VALUE: {bonus.val}
                 </div>
-                <div className="bg-brand-gold/10 w-12 h-12 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                  <bonus.icon className="w-6 h-6 text-brand-gold" />
+                
+                <div className="mb-6 overflow-hidden rounded-xl bg-brand-gold/5 aspect-square flex items-center justify-center group-hover:bg-brand-gold/10 transition-colors">
+                  <img 
+                    src={bonus.image} 
+                    alt={bonus.title} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
-                <h4 className="text-brand-off-white font-bold text-xl mb-3">{bonus.title}</h4>
-                <p className="text-brand-off-white/70 text-sm leading-relaxed">{bonus.desc}</p>
+
+                <h4 className="text-brand-off-white font-bold text-lg mb-3 leading-tight">{bonus.title}</h4>
+                <p className="text-brand-off-white/70 text-xs leading-relaxed mt-auto">{bonus.desc}</p>
               </motion.div>
             ))}
           </div>
 
           <div className="mt-16 text-center">
             <div className="inline-block bg-brand-gold/10 border border-brand-gold/30 rounded-2xl p-6 md:p-8">
-              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦60,000 ($40)</p>
+              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦70,000 ($46)</p>
               <p className="text-brand-off-white/80 text-sm">Yours <span className="text-brand-gold font-bold">FREE</span> just for joining the waitlist today.</p>
             </div>
           </div>
@@ -1007,12 +1097,14 @@ export default function App() {
             Don't pay ₦25,000 later. Join the waitlist now to <span className="text-brand-gold-light font-bold">lock in your 60% discount</span> and secure your spot for just ₦9,999.
           </p>
 
-          <button 
+          <motion.button 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="bg-brand-gold text-brand-blue-dark font-bold py-3 px-8 rounded-xl shadow-xl hover:bg-brand-gold-light transition-all"
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             JOIN THE WAITLIST NOW
-          </button>
+          </motion.button>
         </div>
       </section>
 
