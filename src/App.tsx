@@ -219,7 +219,14 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
         <motion.button 
           disabled={isSubmitting}
           className="premium-button w-full"
-          animate={{ scale: [1, 1.05, 1] }}
+          animate={{ 
+            scale: [1, 1.05, 1],
+            boxShadow: [
+              "0 0 20px rgba(255, 255, 255, 0.3)",
+              "0 0 35px rgba(255, 255, 255, 0.6)",
+              "0 0 20px rgba(255, 255, 255, 0.3)"
+            ]
+          }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           {isSubmitting ? 'SUBMITTING...' : 'JOIN THE WAITLIST NOW'} <ArrowRight className="w-5 h-5" />
@@ -586,11 +593,26 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10"
         >
-          <div className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-5 py-2 mb-8">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.03, 1],
+              boxShadow: [
+                "0 15px 30px -10px rgba(255, 255, 255, 0.1)",
+                "0 20px 40px -10px rgba(255, 255, 255, 0.3)",
+                "0 15px 30px -10px rgba(255, 255, 255, 0.1)"
+              ]
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+            className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-5 py-2 mb-8 shadow-2xl"
+          >
             <span className="text-xs md:text-sm font-mono tracking-[0.2em] uppercase text-brand-gold-light">
               ⭐ INTRODUCING THE AI W.A.V.E. MASTERCLASS — LIMITED SEATS AVAILABLE
             </span>
-          </div>
+          </motion.div>
 
           <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black leading-[0.95] max-w-4xl mx-auto mb-8 tracking-tight">
             <span className="italic text-brand-gold-light">4 AI Skills</span>
@@ -681,7 +703,7 @@ export default function App() {
       </div>
 
       {/* --- The Problem Section --- */}
-      <section className="py-24 px-6 bg-brand-blue-dark relative overflow-hidden">
+      <section className="pt-24 pb-12 px-6 bg-brand-blue-dark relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-gold/20 to-transparent" />
         <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-16">
@@ -735,7 +757,7 @@ export default function App() {
       </section>
 
       {/* --- Who This Is For --- */}
-      <section className="py-20 px-6 max-w-6xl mx-auto">
+      <section className="pt-12 pb-20 px-6 max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <SectionBadge>This Is For You</SectionBadge>
           <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
@@ -923,7 +945,7 @@ export default function App() {
               },
               { 
                 title: "African Digital Income Starter Kit", 
-                val: "₦20,000", 
+                val: "₦25,000", 
                 desc: "The essential software and AI tools every professional needs to automate their workflow and boost productivity.",
                 image: "https://i.ibb.co/gMqbxZJ4/Untitled-design-20260204-000236-0000.png"
               },
@@ -935,7 +957,7 @@ export default function App() {
               },
               { 
                 title: "Private Community Access", 
-                val: "₦25,000", 
+                val: "PRICELESS", 
                 desc: "90 days of priority support and networking with other Ambitious Professionals.",
                 image: "https://i.ibb.co/0jBY0MNr/1775903459725.jpg"
               }
@@ -952,12 +974,12 @@ export default function App() {
                   i === 1 ? { opacity: 1, scale: 1 } :
                   { opacity: 1, x: 0, y: 0 }
                 }
-                viewport={{ amount: 0.2 }}
+                viewport={{ once: true, amount: 0.3 }}
                 transition={{ 
                   type: 'spring', 
-                  stiffness: 70, 
-                  damping: 12, 
-                  delay: i * 0.15 
+                  stiffness: 50, 
+                  damping: 15, 
+                  delay: i * 0.4 
                 }}
                 whileHover={{ y: -10, scale: 1.02, transition: { duration: 0.2 } }}
                 className={`glass-card p-6 rounded-2xl border-t-4 border-t-brand-gold relative group flex flex-col ${i === 3 ? 'ring-4 ring-brand-gold/30 shadow-[0_0_30px_rgba(212,175,55,0.4)]' : ''}`}
@@ -998,7 +1020,7 @@ export default function App() {
 
           <div className="mt-16 text-center">
             <div className="inline-block bg-brand-gold/10 border border-brand-gold/30 rounded-2xl p-6 md:p-8">
-              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦70,000 ($46)</p>
+              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦50,000 + PRICELESS Bonuses</p>
               <p className="text-brand-off-white/80 text-sm">Yours <span className="text-brand-gold font-bold">FREE</span> just for joining the waitlist today.</p>
             </div>
           </div>
@@ -1099,8 +1121,15 @@ export default function App() {
 
           <motion.button 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="bg-brand-gold text-brand-blue-dark font-bold py-3 px-8 rounded-xl shadow-xl hover:bg-brand-gold-light transition-all"
-            animate={{ scale: [1, 1.05, 1] }}
+            className="premium-button px-10"
+            animate={{ 
+              scale: [1, 1.05, 1],
+              boxShadow: [
+                "0 0 20px rgba(255, 255, 255, 0.3)",
+                "0 0 35px rgba(255, 255, 255, 0.6)",
+                "0 0 20px rgba(255, 255, 255, 0.3)"
+              ]
+            }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             JOIN THE WAITLIST NOW

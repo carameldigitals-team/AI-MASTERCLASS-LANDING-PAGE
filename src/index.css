@@ -31,7 +31,7 @@
     @apply bg-brand-blue-navy/40 backdrop-blur-md border border-brand-gold/10 shadow-2xl;
   }
   .premium-button {
-    @apply relative overflow-hidden bg-gradient-to-r from-brand-gold to-brand-gold-light text-brand-blue-dark font-bold py-3 px-6 rounded-xl shadow-xl shadow-brand-gold/20 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 text-base;
+    @apply relative overflow-hidden bg-gradient-to-r from-brand-gold to-brand-gold-light text-brand-blue-dark font-bold py-3 px-6 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:-translate-y-1 active:translate-y-0 transition-all duration-300 flex items-center justify-center gap-2 text-base;
   }
   .premium-button::after {
     content: '';
