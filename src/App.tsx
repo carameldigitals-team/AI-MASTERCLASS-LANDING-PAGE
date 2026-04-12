@@ -40,7 +40,7 @@ const SectionBadge = ({ children }: { children: ReactNode }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.8, y: 10 }}
     whileInView={{ opacity: 1, scale: 1, y: 0 }}
-    viewport={{ once: true }}
+    viewport={{ once: false }}
     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     className="inline-flex items-center bg-brand-blue-navy/60 border border-brand-gold/30 rounded-full px-6 py-2 mb-8 shadow-lg shadow-brand-gold/5"
   >
@@ -162,7 +162,13 @@ interface WaitlistFormProps {
 }
 
 const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, handleSubmit }: WaitlistFormProps) => (
-  <div className="max-w-md mx-auto">
+  <motion.div 
+    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+    viewport={{ once: false }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+    className="max-w-md mx-auto"
+  >
     {!isSubmitted ? (
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-4">
@@ -256,14 +262,14 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
         </a>
       </motion.div>
     )}
-  </div>
+  </motion.div>
 );
 
 const SkillRow = ({ num, title, description, income }: { num: string, title: string, description: string, income: string }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
+    viewport={{ once: false }}
     className="glass-card border-l-4 border-l-brand-gold rounded-r-xl p-8 md:p-10 hover:bg-brand-blue-navy/60 transition-all duration-500 group"
   >
     <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -294,7 +300,7 @@ const PriceCard = ({ tier, amount, was, usd, usdWas, includes, featured = false,
       scale: 1.02,
       transition: { type: 'spring', stiffness: 400, damping: 10 }
     }}
-    viewport={{ once: true }}
+    viewport={{ once: false }}
     transition={{ 
       duration: 0.6, 
       delay: index * 0.15,
@@ -406,7 +412,7 @@ const AuthoritySection = () => (
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
+        viewport={{ once: false }}
         className="relative w-full lg:w-1/2 flex justify-center"
       >
         <div className="relative">
@@ -429,7 +435,7 @@ const AuthoritySection = () => (
       <motion.div 
         initial={{ opacity: 0, x: 30 }}
         whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: false }}
         className="w-full lg:w-1/2 text-center lg:text-left"
       >
         <SectionBadge>Meet Your Strategist & TUTOR</SectionBadge>
@@ -641,53 +647,33 @@ export default function App() {
             {/* Decorative background element */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold/5 blur-3xl rounded-full -mr-16 -mt-16" />
             
-            <div className="relative z-10">
+            <div className="relative z-10 text-center">
               <div className="flex items-center justify-center gap-3 mb-6">
                 <div className="h-px w-8 bg-brand-gold/30" />
                 <Gift className="w-6 h-6 text-brand-gold animate-bounce" />
                 <div className="h-px w-8 bg-brand-gold/30" />
               </div>
 
-              <h3 className="text-brand-off-white font-serif text-xl md:text-2xl font-bold mb-8 leading-tight text-center">
-                The first <span className="text-brand-gold-light underline decoration-brand-gold/30 underline-offset-4">20 Fast action-takers</span> to register will also unlock free access to these exclusive bonuses:
+              <h3 className="text-brand-off-white font-serif text-xl md:text-2xl font-bold mb-8 leading-tight">
+                The first <span className="text-brand-gold-light underline decoration-brand-gold/30 underline-offset-4">20 Fast action-takers</span> to register will also unlock free access to exclusive high-value bonuses.
               </h3>
               
-              <div className="space-y-4">
-                {[
-                  { title: "African Digital Income Starter Kit", val: "₦25,000" },
-                  { title: "The AI Prompt Vault", val: "₦15,000" },
-                  { title: "Where the Money Flows BLUEPRINT", subtitle: "Sustainable Income & Market Positioning", val: "₦20,000" },
-                  { title: "First 10 sales in 7 Days Action Plan", val: "₦10,000" },
-                  { title: "Personal Self Discovery AI Framework", subtitle: "Uncover your unique strengths", val: "₦10,000" }
-                ].map((item, i) => (
-                  <motion.div 
-                    key={i} 
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex gap-4 items-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-brand-gold/30 hover:bg-brand-gold/5 transition-all duration-300 group"
-                  >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20 group-hover:scale-110 group-hover:bg-brand-gold/20 transition-all">
-                      <Star className="w-5 h-5 text-brand-gold fill-brand-gold/20" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h4 className="text-brand-off-white text-sm md:text-base font-bold leading-tight group-hover:text-brand-gold-light transition-colors">
-                        {item.title}
-                      </h4>
-                      {item.subtitle && (
-                        <p className="text-brand-off-white/60 text-[10px] md:text-xs font-mono uppercase tracking-wider mt-1">
-                          {item.subtitle}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex-shrink-0 bg-brand-gold/10 px-3 py-1 rounded-full border border-brand-gold/20">
-                      <span className="text-[10px] font-bold text-brand-gold-light font-mono">FREE</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  const element = document.getElementById('bonus-stack');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="inline-flex items-center gap-2 bg-brand-gold text-brand-blue-dark px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wider shadow-lg hover:shadow-brand-gold/20 transition-all duration-300"
+              >
+                <Star className="w-4 h-4 fill-brand-blue-dark" />
+                See Bonuses for Action Takers
+              </motion.button>
               
-              <div className="mt-10 pt-8 border-t border-brand-gold/20 text-center">
+              <div className="mt-10 pt-8 border-t border-brand-gold/20">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-gold/10 rounded-full border border-brand-gold/20">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
@@ -722,10 +708,17 @@ export default function App() {
             { num: '4', lbl: 'Live Builds on Screen' },
             { num: '0', lbl: 'Prior Tech Skills Needed' }
           ].map((stat, i) => (
-            <div key={i} className="text-center group">
+            <motion.div 
+              key={i} 
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: false }}
+              transition={{ delay: i * 0.1, type: 'spring', stiffness: 200 }}
+              className="text-center group"
+            >
               <span className="block font-serif text-2xl md:text-3xl font-black text-brand-gold-light mb-2 group-hover:scale-105 transition-transform duration-500">{stat.num}</span>
               <span className="text-[9px] uppercase tracking-[0.2em] text-brand-off-white/90 font-mono font-bold">{stat.lbl}</span>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -768,7 +761,7 @@ export default function App() {
                 key={i}
                 initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: false }}
                 className="flex gap-6 p-6 rounded-2xl bg-brand-blue-navy/30 border border-white/5 hover:border-brand-gold/20 transition-all duration-300"
               >
                 <div className="bg-brand-gold/10 p-3 rounded-xl h-fit">
@@ -810,7 +803,7 @@ export default function App() {
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false }}
               className="glass-card rounded-2xl p-8 md:p-10 hover:bg-brand-blue-navy/60 hover:border-brand-gold/30 transition-all duration-500 group"
             >
               <div className="bg-brand-gold/10 w-14 h-14 rounded-xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-brand-gold/20 transition-all duration-500">
@@ -847,7 +840,7 @@ export default function App() {
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
+                viewport={{ once: false }}
                 transition={{ delay: i * 0.1 }}
                 className="flex gap-4 p-6 rounded-xl bg-red-500/5 border border-red-500/20"
               >
@@ -924,7 +917,8 @@ export default function App() {
               { time: "8:00 PM", title: "AI Foundations & Command Center", desc: "Setting up the exact tools and prompts you can use to run an entire digital business." },
               { time: "8:30 PM", title: "The 15-Minute AI Website Build", desc: "Watch me build a professional, high-converting website live on screen using AI." },
               { time: "9:00 PM", title: "Viral AI Video & Content Creation", desc: "How to create professional videos and social content without ever showing your face." },
-              { time: "9:30 PM", title: "Monetization Systems & Live Q&A", desc: "The exact steps to turn these skills into a consistent income stream starting today." }
+              { time: "9:30 PM", title: "Automate Business Process with AI", desc: "The 'A' in W.A.V.E. — Setting up automated workflows to handle your business operations while you sleep." },
+              { time: "10:00 PM", title: "Monetization Systems & Live Q&A", desc: "The exact steps to turn these skills into a consistent income stream starting today." }
             ].map((step, i) => (
               <div key={i} className="relative pl-8 md:pl-0">
                 <div className="absolute -left-[9px] md:left-1/2 md:-translate-x-1/2 top-0 w-4 h-4 rounded-full bg-brand-gold border-4 border-brand-blue-dark shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
@@ -951,65 +945,69 @@ export default function App() {
       </section>
 
       {/* --- Bonuses Section --- */}
-      <section className="py-20 px-6 bg-brand-gold/5 relative overflow-hidden">
+      <section id="bonus-stack" className="py-20 px-6 bg-brand-gold/5 relative overflow-hidden">
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <SectionBadge>Waitlist Exclusives</SectionBadge>
             <h2 className="font-serif text-3xl md:text-5xl font-bold mb-6 leading-tight">
-              Stacking the Value for <span className="italic text-brand-gold-light">Your Success.</span>
+              Exclusive Accelerators for the <span className="italic text-brand-gold-light">First 20 Action-Takers</span>
             </h2>
-            <p className="text-brand-off-white/80 text-base md:text-lg max-w-2xl mx-auto">
-              Join the waitlist today and get these high-value bonuses for <span className="text-brand-gold-light font-bold">FREE</span> when you eventually register.
+            <p className="text-brand-off-white/80 text-base md:text-lg max-w-2xl mx-auto italic">
+              "Here is my Special Reward for the First 20 Fast-Movers because I Love Decisive Action (Limited to 20 Spots)"
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               { 
                 title: "The AI Prompt Vault", 
                 val: "₦15,000", 
-                desc: "50+ high-converting prompts for marketing, sales, and content creation.",
+                desc: "Instantly engineer high-converting content and automate your workflow without staring at a blank screen.",
                 image: "https://i.ibb.co/hTnK1Tv/Untitled-design-20260204-000327-0000.png"
               },
               { 
                 title: "African Digital Income Starter Kit", 
                 val: "₦25,000", 
-                desc: "The essential software and AI tools every professional needs to automate their workflow and boost productivity.",
+                desc: "Your tailored, region-specific blueprint to launch and monetize your digital presence with absolute clarity.",
                 image: "https://i.ibb.co/gMqbxZJ4/Untitled-design-20260204-000236-0000.png"
+              },
+              { 
+                title: "Where the Money Flows Blueprint", 
+                val: "₦15,000", 
+                desc: "Stop guessing. Discover the exact digital ecosystems and high-demand skills that are generating real, residual income right now.",
+                image: "https://i.ibb.co/6RWPGVFK/1776027707113.jpg"
+              },
+              { 
+                title: "First 10 sales in 7 days", 
+                val: "₦7,500", 
+                desc: "Your step-by-step momentum builder. Get your first wave of paying clients fast so you can validate your offer and scale with confidence.",
+                image: "https://i.ibb.co/pBq9XS98/1776027730960.jpg"
               },
               { 
                 title: "Personal Self Discovery Prompt", 
                 val: "₦10,000", 
-                desc: "A powerful AI-driven framework to help you uncover your unique strengths and career path.",
+                desc: "Align your digital business with your core strengths and values for long-term, burnout-free success.",
                 image: "https://i.ibb.co/mFvx0FJf/1775902543989.jpg"
               },
               { 
                 title: "Private Community Access", 
                 val: "PRICELESS", 
-                desc: "90 days of priority support and networking with other Ambitious Professionals.",
+                desc: "You are not doing this alone. Get direct access to a network of driven professionals and real-time support to ensure you never get stuck.",
                 image: "https://i.ibb.co/0jBY0MNr/1775903459725.jpg"
               }
             ].map((bonus, i) => (
               <motion.div 
                 key={i}
-                initial={
-                  i === 0 ? { opacity: 0, x: -150 } :
-                  i === 1 ? { opacity: 0, scale: 0.1 } :
-                  i === 2 ? { opacity: 0, x: 150 } :
-                  { opacity: 0, y: 100 }
-                }
-                whileInView={
-                  i === 1 ? { opacity: 1, scale: 1 } :
-                  { opacity: 1, x: 0, y: 0 }
-                }
-                viewport={{ once: true, amount: 0.3 }}
+                initial={{ opacity: 0, y: 60, scale: 0.8, rotate: i % 2 === 0 ? -2 : 2 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                viewport={{ once: false, amount: 0.1 }}
                 transition={{ 
                   type: 'spring', 
-                  stiffness: 50, 
-                  damping: 15, 
-                  delay: i * 0.4 
+                  stiffness: 100, 
+                  damping: 12, 
+                  delay: (i % 3) * 0.1 
                 }}
-                whileHover={{ y: -10, scale: 1.02, transition: { duration: 0.2 } }}
+                whileHover={{ y: -10, scale: 1.05, transition: { duration: 0.2 } }}
                 className={`glass-card p-6 rounded-2xl border-t-4 border-t-brand-gold relative group flex flex-col ${i === 3 ? 'ring-4 ring-brand-gold/30 shadow-[0_0_30px_rgba(212,175,55,0.4)]' : ''}`}
               >
                 {/* Attention Grabber for 4th Bonus */}
@@ -1032,7 +1030,10 @@ export default function App() {
                 </div>
                 
                 <div className="mb-6 overflow-hidden rounded-xl bg-brand-gold/5 aspect-square flex items-center justify-center group-hover:bg-brand-gold/10 transition-colors">
-                  <img 
+                  <motion.img 
+                    initial={{ scale: 1.2, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: (i % 3) * 0.1 + 0.2, duration: 0.6 }}
                     src={bonus.image} 
                     alt={bonus.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -1046,10 +1047,16 @@ export default function App() {
             ))}
           </div>
 
+          <div className="mt-12 text-center">
+            <p className="text-brand-gold-light font-bold text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+              "⚠️ Note: These bonuses are strictly reserved for the <span className="text-white">first 20 people who enroll today</span>. Once those spots are claimed, this vault locks."
+            </p>
+          </div>
+
           <div className="mt-16 text-center">
             <div className="inline-block bg-brand-gold/10 border border-brand-gold/30 rounded-2xl p-6 md:p-8">
-              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦50,000 + PRICELESS Bonuses</p>
-              <p className="text-brand-off-white/80 text-sm">Yours <span className="text-brand-gold font-bold">FREE</span> just for joining the waitlist today.</p>
+              <p className="text-brand-gold-light font-serif text-xl md:text-2xl font-bold mb-2">Total Bonus Value: ₦72,500 + PRICELESS Bonuses</p>
+              <p className="text-brand-off-white/80 text-sm">Yours <span className="text-brand-gold font-bold">FREE</span> when you join the waitlist & secure your spot.</p>
             </div>
           </div>
         </div>
@@ -1063,7 +1070,7 @@ export default function App() {
             Simple Pricing.<br /><span className="italic text-brand-gold-light">Exceptional</span> Value.
           </h2>
           <p className="text-brand-off-white text-base md:text-lg max-w-xl mx-auto leading-relaxed font-normal">
-            This 60% discount is <span className="text-brand-gold-light font-bold underline">exclusive</span> to waitlist members. Once the first 20 spots are filled, the price returns to ₦25,000 for everyone else.
+            This 60% discount is <span className="text-brand-gold-light font-bold underline">exclusive</span> to waitlist members. Once the first 20 spots are filled, the price returns to <span className="text-brand-gold-light font-bold">₦25,000</span> for standard access and <span className="text-brand-gold-light font-bold">₦50,000</span> for VIP access.
           </p>
         </div>
 
