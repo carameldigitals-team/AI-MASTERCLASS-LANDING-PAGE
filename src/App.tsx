@@ -23,7 +23,6 @@ import {
   ExternalLink,
   AlertCircle,
   TrendingDown,
-  Timer,
   Gift,
   Award,
   XCircle
@@ -231,8 +230,8 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
         >
           {isSubmitting ? 'SUBMITTING...' : 'JOIN THE WAITLIST NOW'} <ArrowRight className="w-5 h-5" />
         </motion.button>
-        <p className="text-xs text-brand-off-white/90 font-medium flex items-center justify-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-brand-gold" /> No spam. Your privacy is our priority.
+        <p className="text-[10px] md:text-xs text-brand-off-white/90 font-medium flex items-center justify-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-brand-gold" /> NO SPAM. YOUR PRIVACY IS SECURE. <a href="https://privacypolicy.carameldigitals.com/" target="_blank" rel="noopener noreferrer" className="text-brand-gold-light underline hover:text-brand-gold transition-colors">SEE OUR PRIVACY POLICY.</a>
         </p>
       </form>
     ) : (
@@ -486,7 +485,6 @@ const AuthoritySection = () => (
 );
 
 export default function App() {
-  const [timeLeft, setTimeLeft] = useState({ days: 7, hours: 23, minutes: 59, seconds: 59 });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -500,18 +498,6 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        if (prev.days > 0) return { ...prev, days: prev.days - 1, hours: 23, minutes: 59, seconds: 59 };
-        return prev;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -622,9 +608,10 @@ export default function App() {
             <span className="text-brand-gold">Real Money</span>
           </h1>
 
-    <p className="text-brand-off-white text-base md:text-lg max-w-2xl mx-auto font-normal leading-relaxed mb-12 px-4">
+    <p className="text-brand-off-white text-base md:text-lg max-w-2xl mx-auto font-normal leading-relaxed mb-4 px-4">
       Watch me build the exact AI systems Ambitious African Professionals use to earn <span className="text-brand-gold-pale font-bold border-b border-brand-gold/30">₦200K–₦800K+ ($133–$533+)</span> monthly. <span className="text-brand-gold-light font-bold">Join the waitlist now to lock in your 60% discount</span> before the price jumps to ₦25,000.
     </p>
+    <p className="text-[10px] text-brand-off-white/40 mb-12 italic">*Results vary. See our Earnings Disclaimer in the footer.</p>
 
           <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-12 max-w-3xl mx-auto px-4">
             {['Build Websites with AI', 'Create Professional Videos Without Camera', 'Build & Sell Digital Products', 'Automate Business Systems'].map((skill, i) => (
@@ -649,28 +636,69 @@ export default function App() {
             ))}
           </div>
 
-          {/* Countdown */}
-          <div className="mb-8">
-            <p className="text-xs font-mono tracking-widest uppercase text-brand-off-white/90 mb-4">Early bird pricing closes in</p>
-            <div className="flex justify-center gap-2 md:gap-3">
-              {[
-                { val: timeLeft.days, lbl: 'Days' },
-                { val: timeLeft.hours, lbl: 'Hours' },
-                { val: timeLeft.minutes, lbl: 'Mins' },
-                { val: timeLeft.seconds, lbl: 'Secs' }
-              ].map((unit, i) => (
-                <div key={i} className="bg-brand-blue-navy border border-brand-gold/20 rounded-lg p-2 min-w-[64px] md:min-w-[72px]">
-                  <span className="block font-mono text-xl md:text-2xl font-bold text-brand-gold-light leading-none">{String(unit.val).padStart(2, '0')}</span>
-                  <span className="text-[10px] uppercase tracking-tighter text-brand-off-white/80 mt-1">{unit.lbl}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Fast Action Bonus Section */}
+          <div className="mb-12 max-w-2xl mx-auto bg-brand-blue-navy border-2 border-brand-gold rounded-3xl p-6 md:p-10 shadow-[0_0_50px_-12px_rgba(212,175,55,0.2)] relative overflow-hidden">
+            {/* Decorative background element */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold/5 blur-3xl rounded-full -mr-16 -mt-16" />
+            
+            <div className="relative z-10">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="h-px w-8 bg-brand-gold/30" />
+                <Gift className="w-6 h-6 text-brand-gold animate-bounce" />
+                <div className="h-px w-8 bg-brand-gold/30" />
+              </div>
 
-          <div className="bg-brand-gold/5 border border-brand-gold/20 rounded-xl p-4 max-w-lg mx-auto mb-12">
-            <p className="text-base text-brand-gold-pale font-medium">
-              🎯 Only <span className="text-brand-gold-light font-bold">50 early-bird spots</span> available at the founding price — once they're gone, the price goes up.
-            </p>
+              <h3 className="text-brand-off-white font-serif text-xl md:text-2xl font-bold mb-8 leading-tight text-center">
+                The first <span className="text-brand-gold-light underline decoration-brand-gold/30 underline-offset-4">20 Fast action-takers</span> to register will also unlock free access to these exclusive bonuses:
+              </h3>
+              
+              <div className="space-y-4">
+                {[
+                  { title: "African Digital Income Starter Kit", val: "₦25,000" },
+                  { title: "The AI Prompt Vault", val: "₦15,000" },
+                  { title: "Where the Money Flows BLUEPRINT", subtitle: "Sustainable Income & Market Positioning", val: "₦20,000" },
+                  { title: "First 10 sales in 7 Days Action Plan", val: "₦10,000" },
+                  { title: "Personal Self Discovery AI Framework", subtitle: "Uncover your unique strengths", val: "₦10,000" }
+                ].map((item, i) => (
+                  <motion.div 
+                    key={i} 
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex gap-4 items-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-brand-gold/30 hover:bg-brand-gold/5 transition-all duration-300 group"
+                  >
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-brand-gold/10 flex items-center justify-center border border-brand-gold/20 group-hover:scale-110 group-hover:bg-brand-gold/20 transition-all">
+                      <Star className="w-5 h-5 text-brand-gold fill-brand-gold/20" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h4 className="text-brand-off-white text-sm md:text-base font-bold leading-tight group-hover:text-brand-gold-light transition-colors">
+                        {item.title}
+                      </h4>
+                      {item.subtitle && (
+                        <p className="text-brand-off-white/60 text-[10px] md:text-xs font-mono uppercase tracking-wider mt-1">
+                          {item.subtitle}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0 bg-brand-gold/10 px-3 py-1 rounded-full border border-brand-gold/20">
+                      <span className="text-[10px] font-bold text-brand-gold-light font-mono">FREE</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div className="mt-10 pt-8 border-t border-brand-gold/20 text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-brand-gold/10 rounded-full border border-brand-gold/20">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-gold opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-gold"></span>
+                  </span>
+                  <p className="text-brand-gold-light font-bold text-[10px] md:text-xs uppercase tracking-[0.2em]">
+                    LIMITED SPOTS REMAINING — ACT NOW
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Form */}
@@ -1035,7 +1063,7 @@ export default function App() {
             Simple Pricing.<br /><span className="italic text-brand-gold-light">Exceptional</span> Value.
           </h2>
           <p className="text-brand-off-white text-base md:text-lg max-w-xl mx-auto leading-relaxed font-normal">
-            This 60% discount is <span className="text-brand-gold-light font-bold underline">exclusive</span> to waitlist members. Once the timer hits zero, the price returns to ₦25,000 for everyone else.
+            This 60% discount is <span className="text-brand-gold-light font-bold underline">exclusive</span> to waitlist members. Once the first 20 spots are filled, the price returns to ₦25,000 for everyone else.
           </p>
         </div>
 
@@ -1178,10 +1206,10 @@ export default function App() {
             <div>
               <h4 className="text-brand-off-white font-bold mb-6 uppercase tracking-widest text-xs">Support & Legal</h4>
               <ul className="space-y-4 text-sm text-brand-off-white/70">
-                <li><a href="#" className="hover:text-brand-gold transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-brand-gold transition-colors">Terms & Conditions</a></li>
-                <li><a href="#" className="hover:text-brand-gold transition-colors">Earnings Disclaimer</a></li>
-                <li><a href="#" className="hover:text-brand-gold transition-colors">Contact Support</a></li>
+                <li><a href="https://privacypolicy.carameldigitals.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-gold transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Privacy Policy</a></li>
+                <li><a href="https://terms.carameldigitals.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-gold transition-colors">Terms & Conditions</a></li>
+                <li><a href="#earnings-disclaimer" className="hover:text-brand-gold transition-colors">Earnings Disclaimer</a></li>
+                <li><a href="mailto:support@carameldigitals.com" className="hover:text-brand-gold transition-colors">Contact Support</a></li>
               </ul>
             </div>
 
@@ -1202,13 +1230,25 @@ export default function App() {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-brand-gold/10 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-xs text-brand-off-white/50 text-center md:text-left">
-              © 2026 <span className="text-brand-gold font-bold">Caramel Digital Academy</span>. All rights reserved. Built by Elizabeth O. Emmanuel.
-            </p>
-            <p className="text-[10px] text-brand-off-white/30 max-w-md text-center md:text-right leading-relaxed">
-              Disclaimer: The income figures mentioned are potential earnings based on industry standards. Your results may vary depending on your effort, skill level, and market conditions.
-            </p>
+          <div className="pt-8 border-t border-brand-gold/10 flex flex-col items-center gap-8">
+            <div className="text-center space-y-4">
+              <p className="text-[10px] text-brand-off-white/30 max-w-3xl mx-auto leading-relaxed">
+                NOT FACEBOOK™/GOOGLE™: This site is not a part of the Facebook™ website or Facebook Inc. Additionally, This site is NOT endorsed by Facebook™ or Google™ in any way. FACEBOOK™ is a trademark of FACEBOOK™, Inc. GOOGLE™ is a trademark of GOOGLE™, Inc.
+              </p>
+              <p id="earnings-disclaimer" className="text-[10px] text-brand-off-white/40 max-w-3xl mx-auto leading-relaxed italic scroll-mt-20">
+                EARNINGS DISCLAIMER: We do not believe in "get rich" programs - only in hard work, adding value, building a real career, and serving others with real-world skills. As stipulated by law, we cannot and do not make any guarantees about your ability to get results or earn any money with our ideas, information, tools or strategies. We don't know you and, besides, your results in life are up to you. Agreed? We just want to help by giving great content, direction, and strategies. You should know that all products and services by our company are for educational and informational purposes only. Nothing on this page, any of our websites, or any of our content or curriculum is a promise or guarantee of results or future earnings, and we do not offer any legal, medical, tax or other professional advice.
+              </p>
+            </div>
+            
+            <div className="flex flex-col md:flex-row justify-between items-center w-full gap-6 pt-4 border-t border-brand-gold/5">
+              <p className="text-xs text-brand-off-white/50 text-center md:text-left">
+                © 2026 <span className="text-brand-gold font-bold">Caramel Digital Academy</span>. All rights reserved. Built by Elizabeth O. Emmanuel.
+              </p>
+              <div className="flex gap-6 text-[10px] text-brand-off-white/40">
+                <span>Lagos, Nigeria</span>
+                <span>support@carameldigitals.com</span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>
