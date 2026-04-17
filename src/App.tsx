@@ -171,6 +171,17 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
   >
     {!isSubmitted ? (
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Wamation Tracking Fields */}
+        <input type="hidden" name="zq" value="41213" />
+        <input type="hidden" name="fid" value="5f66a80141213" />
+        <input type="hidden" name="pid" value="" />
+        <input type="hidden" name="bumppid" value="0" />
+        <input type="hidden" name="cid" value="" />
+        <input type="hidden" name="usp" value="0" />
+        <input type="hidden" name="grk" value="" />
+        <input type="hidden" name="pvar" value="" />
+        <input type="hidden" name="submit" value="JOIN THE WAITLIST NOW" />
+
         <div className="space-y-4">
           <div className="relative group">
             <input 
@@ -519,45 +530,40 @@ export default function App() {
     };
 
     try {
-      // 1. CAPTURE LEAD FIRST
+      // 1. ATTEMPT LEAD CAPTURE
+      // Note: This calls the local server. On static hosts like Cloudflare/GitHub, 
+      // this fetch will fail with a 404 because the server.ts isn't running.
       const response = await fetch('/api/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
-      if (response.ok) {
-        // 2. SHOW SUCCESS STATE
-        setIsSubmitted(true);
-        console.log("Lead captured successfully. Initiating redirect...");
+      // 2. REDIRECT LOGIC
+      // We check if submission was successful OR if we are on a static host (404)
+      // If it's a 404, we redirect anyway because we want the user in the group.
+      if (response.ok || response.status === 404) {
+        if (response.status === 404) {
+          console.warn("Backend not found (Static Hosting). Redirecting to WhatsApp anyway.");
+        }
         
+        setIsSubmitted(true);
         const whatsappUrl = "https://chat.whatsapp.com/ILf8UoOCCuvEsomvo5sQx1?mode=gi_t";
         
-        // 3. REDIRECT IMMEDIATELY (New tab is best to keep the form available for next lead)
         try {
-          const newWindow = window.open(whatsappUrl, "_blank");
-          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-            // If popup is blocked, try top-level redirect as fallback
-            console.warn("Popup blocked, falling back to top-level redirect");
-            if (window.top && window.top !== window) {
-              window.top.location.href = whatsappUrl;
-            } else {
-              window.location.href = whatsappUrl;
-            }
-          }
-        } catch (e) {
-          console.error("Redirect failed, using fallback:", e);
           window.location.href = whatsappUrl;
+        } catch (e) {
+          console.error("Redirect failed:", e);
+          window.open(whatsappUrl, "_blank");
         }
 
-        // 4. RESET FORM FOR ANOTHER LEAD CAPTURE
-        // We wait 3 seconds so they see the success message before the form resets
         setTimeout(() => {
           setIsSubmitted(false);
           form.reset();
         }, 3000);
       } else {
-        alert("Something went wrong. Please try again.");
+        // Only error if it's a real server error (500, etc.) and not just a missing backend
+        alert("Something went wrong. Please check your connection and try again.");
       }
     } catch (error) {
       console.error("Submission error:", error);
