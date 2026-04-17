@@ -40,7 +40,7 @@ const SectionBadge = ({ children }: { children: ReactNode }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.8, y: 10 }}
     whileInView={{ opacity: 1, scale: 1, y: 0 }}
-    viewport={{ once: false }}
+    viewport={{ once: true }}
     transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     className="inline-flex items-center bg-brand-blue-navy/60 border border-brand-gold/30 rounded-full px-6 py-2 mb-8 shadow-lg shadow-brand-gold/5"
   >
@@ -49,6 +49,56 @@ const SectionBadge = ({ children }: { children: ReactNode }) => (
     </span>
   </motion.div>
 );
+
+const Navbar = ({ onJoinClick }: { onJoinClick: () => void }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <nav className={`sticky top-0 left-0 right-0 z-[100] transition-all duration-300 ${isScrolled ? 'bg-brand-blue-dark/95 backdrop-blur-md py-3 border-b border-brand-gold/20 shadow-xl' : 'bg-brand-blue-dark/80 sm:bg-transparent py-5'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            className="w-7 h-7 sm:w-8 md:w-10 md:h-10 object-contain shrink-0"
+            onError={(e) => e.currentTarget.style.display = 'none'}
+          />
+          <div className="font-serif text-[12px] sm:text-base md:text-xl font-bold leading-[1.1] flex flex-wrap items-center gap-x-1">
+            <span className="text-brand-gold">Caramel</span>
+            <span className="text-brand-off-white"> DIGITAL Academy</span>
+          </div>
+        </div>
+
+        <div className="hidden lg:flex items-center gap-8">
+          {['About', 'Curriculum', 'Bonuses', 'Pricing', 'FAQ'].map((item) => (
+            <a 
+              key={item} 
+              href={`#${item.toLowerCase()}`}
+              className="text-xs uppercase tracking-widest text-brand-off-white/70 hover:text-brand-gold transition-colors font-bold"
+            >
+              {item}
+            </a>
+          ))}
+        </div>
+
+        <button 
+          onClick={onJoinClick}
+          className="bg-brand-gold text-brand-blue-dark text-[9px] sm:text-[10px] md:text-xs font-bold px-3 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-brand-gold-light transition-all shadow-lg active:scale-95 shrink-0 whitespace-nowrap"
+        >
+          JOIN THE WAITLIST
+        </button>
+      </div>
+    </nav>
+  );
+};
 
 const SkillsTicker = () => {
   const skills = [
@@ -78,7 +128,7 @@ const SkillsTicker = () => {
 const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => (
   <AnimatePresence>
     {isOpen && (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -94,7 +144,7 @@ const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
         >
           <h3 className="font-serif text-2xl font-bold text-brand-gold-light mb-6">Terms & Conditions</h3>
           <div className="space-y-4 text-brand-off-white/90 text-sm leading-relaxed max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-            <p>BY SUBMITTING THIS FORM AND DOWNLOADING OUR FREE AI STARTER KIT, You agree to the following terms:</p>
+            <p className="uppercase font-bold tracking-tight">BY SUBMITTING THE FORM TO JOIN THE WAITLIST FOR AI W.A.V.E. MASTERCLASS AND ALSO DOWNLOAD OUR FREE AI STARTER KIT, you agree to the following terms:</p>
             <ol className="list-decimal pl-5 space-y-3">
               <li>To receive relevant AI business tips and updates via your WhatsApp DM in the future.</li>
               <li>That the templates will be used for your personal or internal business purposes only, not to be re shared commercially, redistribute or resell.</li>
@@ -112,6 +162,63 @@ const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
           >
             I UNDERSTAND & AGREE
           </button>
+        </motion.div>
+      </div>
+    )}
+  </AnimatePresence>
+);
+
+const WaitlistModal = ({ 
+  isOpen, 
+  onClose, 
+  isSubmitted, 
+  isSubmitting, 
+  setIsTermsOpen, 
+  handleSubmit 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void,
+  isSubmitted: boolean;
+  isSubmitting: boolean;
+  setIsTermsOpen: (open: boolean) => void;
+  handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
+}) => (
+  <AnimatePresence>
+    {isOpen && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-brand-blue-navy/90 backdrop-blur-md"
+        />
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 40 }}
+          className="relative bg-brand-blue-navy border border-brand-gold/30 rounded-3xl p-6 sm:p-10 max-w-lg w-full shadow-[0_0_100px_-20px_rgba(212,175,55,0.3)] my-8"
+        >
+          <button 
+            onClick={onClose}
+            className="absolute top-6 right-6 text-brand-off-white/40 hover:text-brand-gold transition-colors"
+          >
+            <XCircle className="w-8 h-8" />
+          </button>
+          
+          <div className="text-center mb-8">
+            <SectionBadge>Registration</SectionBadge>
+            <h3 className="font-serif text-3xl font-bold text-brand-gold-light mb-2">Secure Your Spot</h3>
+            <p className="text-brand-off-white/70 text-sm">Fill the form below to join the AI W.A.V.E. Masterclass waitlist.</p>
+          </div>
+
+          <WaitlistForm 
+            idPrefix="modal" 
+            isSubmitted={isSubmitted} 
+            isSubmitting={isSubmitting} 
+            setIsTermsOpen={setIsTermsOpen} 
+            handleSubmit={handleSubmit} 
+          />
         </motion.div>
       </div>
     )}
@@ -303,7 +410,7 @@ const SkillRow = ({ num, title, description, income }: { num: string, title: str
   </motion.div>
 );
 
-const PriceCard = ({ tier, amount, was, usd, usdWas, includes, featured = false, index }: { tier: string, amount: string, was: string, usd: string, usdWas: string, includes: string[], featured?: boolean, index: number }) => (
+const PriceCard = ({ tier, amount, was, usd, usdWas, includes, featured = false, index, onJoinClick }: { tier: string, amount: string, was: string, usd: string, usdWas: string, includes: string[], featured?: boolean, index: number, onJoinClick?: () => void }) => (
   <motion.div
     initial={{ opacity: 0, y: 50, scale: 0.9 }}
     whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -320,7 +427,7 @@ const PriceCard = ({ tier, amount, was, usd, usdWas, includes, featured = false,
     }}
     className={`relative flex-1 max-w-sm p-10 rounded-3xl border-4 transition-colors duration-500 ${
       featured 
-        ? 'bg-gradient-to-br from-brand-blue-navy via-brand-blue-navy to-brand-gold/20 border-brand-gold shadow-[0_0_50px_-12px_rgba(212,175,55,0.3)]' 
+        ? 'bg-brand-blue-navy via-brand-blue-navy to-brand-gold/20 border-brand-gold shadow-[0_0_50px_-12px_rgba(212,175,55,0.3)]' 
         : 'bg-brand-blue-navy/40 backdrop-blur-md border-white/90 shadow-2xl'
     }`}
   >
@@ -366,7 +473,7 @@ const PriceCard = ({ tier, amount, was, usd, usdWas, includes, featured = false,
       </div>
       {featured && (
         <button 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={onJoinClick}
           className="premium-button w-full mt-10 py-3 text-base"
         >
           SECURE VIP SPOT
@@ -469,13 +576,13 @@ const AuthoritySection = () => (
 
         <div className="grid sm:grid-cols-1 gap-6 mb-10 max-w-lg mx-auto lg:mx-0 text-left">
           {[
-            { title: 'Proven Frameworks', desc: 'Creator of the Sovereign Income Multiplier System' },
-            { title: 'Global Impact', desc: 'Helping 1,000+ professionals achieve digital freedom this year' },
-            { title: 'Result-Oriented', desc: 'Expert in Video Animation & systems that scale digital income' }
+            { title: 'Proven Frameworks', desc: 'Creator of the Sovereign Income Multiplier System', icon: Star },
+            { title: 'Global Impact', desc: 'Helping 1,000+ professionals achieve digital freedom this year', icon: Users },
+            { title: 'Result-Oriented', desc: 'Expert in Video Animation & systems that scale digital income', icon: Award }
           ].map((item, i) => (
             <div key={i} className="flex gap-4 items-start bg-brand-blue-navy/40 p-4 rounded-xl border border-brand-gold/10">
               <div className="bg-brand-gold/10 p-2 rounded-lg">
-                <Star className="w-5 h-5 text-brand-gold" />
+                <item.icon className="w-5 h-5 text-brand-gold" />
               </div>
               <div>
                 <h4 className="text-brand-off-white font-bold text-lg">{item.title}</h4>
@@ -505,6 +612,7 @@ const AuthoritySection = () => (
 export default function App() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
 
@@ -521,7 +629,9 @@ export default function App() {
     e.preventDefault();
     const form = e.currentTarget;
     setIsSubmitting(true);
-    setIsSubmitted(true); // Show success state immediately for visual feedback
+    
+    // Use an optimistic success state
+    setIsSubmitted(true); 
     
     // The EXACT WhatsApp link provided by the user
     const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
@@ -577,31 +687,21 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen selection:bg-brand-gold selection:text-brand-blue-dark">
-      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
       <SkillsTicker />
+      <Navbar onJoinClick={() => setIsWaitlistOpen(true)} />
+      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+      <WaitlistModal 
+        isOpen={isWaitlistOpen} 
+        onClose={() => setIsWaitlistOpen(false)} 
+        isSubmitted={isSubmitted}
+        isSubmitting={isSubmitting}
+        setIsTermsOpen={setIsTermsOpen}
+        handleSubmit={handleSubmit}
+      />
       <div className="noise-overlay" />
       
       {/* --- Hero Section --- */}
-      <header className="relative min-h-screen flex flex-col items-center justify-center px-6 py-20 text-center overflow-hidden">
-        {/* Header Logo */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute top-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2"
-        >
-          <img 
-            src="/logo.png" 
-            alt="Caramel Digital Academy Logo" 
-            className="w-10 h-10 object-contain"
-            referrerPolicy="no-referrer"
-            onError={(e) => e.currentTarget.style.display = 'none'}
-          />
-          <div className="font-serif text-xl font-bold tracking-tight">
-            <span className="text-brand-gold">Caramel</span>
-            <span className="text-brand-off-white"> DIGITAL Academy</span>
-          </div>
-        </motion.div>
-
+      <header className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-16 pb-20 text-center overflow-hidden">
         {/* Background Glows */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[60%] bg-brand-gold/10 blur-[120px] rounded-full opacity-50" />
@@ -658,12 +758,13 @@ export default function App() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto bg-brand-blue-navy/40 backdrop-blur-md border border-brand-gold/10 rounded-2xl p-6 md:p-8 mb-16 shadow-2xl shadow-black/50">
             {[
-              { amount: '₦200K–500K ($133–$333)', label: 'Per website built' },
-              { amount: '₦500K–2M+ ($333–$1,333+)', label: 'Monthly (video creators)' },
-              { amount: '₦3K–50K ($2–$33)', label: 'Per digital product' },
-              { amount: '₦800K+ ($533+)', label: 'Automation retainers' }
+              { amount: '₦200K–500K ($133–$333)', label: 'Per website built', icon: Globe },
+              { amount: '₦500K–2M+ ($333–$1,333+)', label: 'Monthly (video creators)', icon: Video },
+              { amount: '₦3K–50K ($2–$33)', label: 'Per digital product', icon: Smartphone },
+              { amount: '₦800K+ ($533+)', label: 'Automation retainers', icon: Zap }
             ].map((item, i) => (
               <div key={i} className="text-center group">
+                <item.icon className="w-5 h-5 text-brand-gold/40 mx-auto mb-2 group-hover:text-brand-gold transition-colors" />
                 <span className="block font-serif text-sm md:text-base font-bold text-brand-gold-light group-hover:scale-105 transition-transform duration-300">{item.amount}</span>
                 <span className="text-[9px] uppercase tracking-[0.15em] text-brand-off-white/80 font-mono mt-1 block">{item.label}</span>
               </div>
@@ -752,7 +853,7 @@ export default function App() {
       </div>
 
       {/* --- The Problem Section --- */}
-      <section className="pt-24 pb-12 px-6 bg-brand-blue-dark relative overflow-hidden">
+      <section id="about" className="pt-24 pb-12 px-6 bg-brand-blue-dark relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-gold/20 to-transparent" />
         <div className="max-w-4xl mx-auto relative z-10">
           <div className="text-center mb-16">
@@ -892,8 +993,71 @@ export default function App() {
       {/* --- Authority Section --- */}
       <AuthoritySection />
 
+      {/* --- Professional's AI Starter Kit --- */}
+      <section id="kit" className="py-20 px-6 bg-brand-blue-navy/30 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            className="w-full lg:w-1/2"
+          >
+            <SectionBadge>Instant Gift</SectionBadge>
+            <h2 className="font-serif text-3xl md:text-5xl font-bold mb-6 leading-tight">
+              Get The <span className="text-brand-gold italic">Professional's</span> AI Starter Kit (Free)
+            </h2>
+            <p className="text-brand-off-white/90 text-base md:text-lg mb-8 leading-relaxed">
+              Before the masterclass even starts, we want to give you a head start. Get our curated list of the top 50+ AI tools that every professional needs in 2026.
+            </p>
+            <div className="space-y-4">
+              {[
+                { title: 'The Tool Matrix', desc: '50+ AI tools categorized by function (Marketing, Writing, Ops)' },
+                { title: 'Prompt Library', desc: '10 high-converting prompt templates for daily business tasks' },
+                { title: 'Setup Guide', desc: 'Step-by-step instructions to connect your first AI automation' }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 items-start">
+                  <div className="bg-brand-gold/20 p-1 rounded-full"><Check className="w-4 h-4 text-brand-gold" /></div>
+                  <div>
+                    <span className="text-brand-gold-light font-bold text-sm block">{item.title}</span>
+                    <span className="text-brand-off-white/70 text-sm">{item.desc}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            className="w-full lg:w-1/2 relative"
+          >
+            <div className="relative group flex justify-center items-center">
+              <div className="absolute -inset-10 bg-brand-gold/5 blur-[80px] rounded-full opacity-50 animate-pulse" />
+              <div className="relative glass-card w-full lg:h-[400px] rounded-3xl flex items-center justify-center p-4 sm:p-8 lg:p-12 border-brand-gold/20 overflow-hidden shadow-[0_22px_70px_4px_rgba(0,0,0,0.56)]">
+                <img 
+                  src="https://i.ibb.co/B5wdLCh4/ei-1771323334829-removebg-preview.png" 
+                  alt="Professional's AI Starter Kit Mockup" 
+                  className="max-w-full max-h-full object-contain filter drop-shadow-[0_30px_60px_rgba(212,175,55,0.4)] group-hover:scale-110 transition-transform duration-700 relative z-10"
+                  referrerPolicy="no-referrer"
+                />
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-blue-navy/80 via-transparent to-transparent z-20" />
+                
+                <div className="absolute bottom-6 left-0 w-full text-center px-4 z-30">
+                  <span className="block text-2xl font-serif font-black text-brand-gold-light mb-1 tracking-tight">FREE DOWNLOAD</span>
+                  <span className="text-brand-off-white/80 text-[10px] font-mono uppercase tracking-[0.2em]">Available to all waitlist members</span>
+                </div>
+
+                <div className="absolute top-6 right-6 bg-brand-gold text-brand-blue-dark text-[10px] font-bold px-4 py-1.5 rounded-full animate-pulse uppercase tracking-widest z-30 shadow-lg shadow-brand-gold/30">
+                  Instant Access
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* --- Skills Breakdown --- */}
-      <section className="py-20 px-6 max-w-5xl mx-auto">
+      <section id="curriculum" className="py-20 px-6 max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <SectionBadge>What You'll Learn</SectionBadge>
           <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
@@ -1091,7 +1255,7 @@ export default function App() {
       </section>
 
       {/* --- Pricing --- */}
-      <section className="pt-8 pb-20 px-6 max-w-6xl mx-auto">
+      <section id="pricing" className="pt-8 pb-20 px-6 max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <SectionBadge>Investment</SectionBadge>
           <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-[1.1] tracking-tight">
@@ -1110,6 +1274,7 @@ export default function App() {
             was="25,000"
             usd="7"
             usdWas="17"
+            onJoinClick={() => setIsWaitlistOpen(true)}
             includes={[
               'Live masterclass access',
               'Recorded replay (48-hour access)',
@@ -1125,6 +1290,7 @@ export default function App() {
             was="50,000"
             usd="13"
             usdWas="33"
+            onJoinClick={() => setIsWaitlistOpen(true)}
             includes={[
               'Everything in Standard',
               'Lifetime replay access',
@@ -1138,7 +1304,7 @@ export default function App() {
       </section>
 
       {/* --- FAQ --- */}
-      <section className="pt-16 pb-8 px-6 max-w-3xl mx-auto">
+      <section id="faq" className="pt-16 pb-8 px-6 max-w-3xl mx-auto">
         <div className="text-center mb-10">
           <SectionBadge>Common Questions</SectionBadge>
           <h2 className="font-serif text-3xl font-bold mb-6 leading-tight">
@@ -1171,32 +1337,27 @@ export default function App() {
       </section>
 
       {/* --- Bottom CTA --- */}
-      <section className="relative pt-12 pb-32 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-brand-gold/5 blur-[100px] rounded-full translate-y-1/2" />
+      <section className="relative pt-12 pb-32 px-6 text-center overflow-hidden bg-brand-blue-dark/50">
+        <div className="absolute inset-0 bg-brand-gold/5 blur-[120px] rounded-full translate-y-1/2" />
         <div className="relative z-10 max-w-3xl mx-auto">
           <SectionBadge>Last Chance</SectionBadge>
           <h2 className="font-serif text-3xl md:text-5xl font-bold mb-8 leading-tight">
             Stop Watching AI Make Other People Rich.<br /><span className="italic text-brand-gold-light">Your Spot is Waiting.</span>
           </h2>
-          <p className="text-brand-off-white/90 text-lg mb-12 max-w-xl mx-auto leading-relaxed font-normal">
+          <p className="text-brand-off-white/90 text-sm md:text-base mb-12 max-w-xl mx-auto leading-relaxed font-normal">
             Don't pay ₦25,000 later. Join the waitlist now to <span className="text-brand-gold-light font-bold">lock in your 60% discount</span> and secure your spot for just ₦9,999.
           </p>
 
-          <motion.button 
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="premium-button px-10"
-            animate={{ 
-              scale: [1, 1.05, 1],
-              boxShadow: [
-                "0 0 20px rgba(255, 255, 255, 0.3)",
-                "0 0 35px rgba(255, 255, 255, 0.6)",
-                "0 0 20px rgba(255, 255, 255, 0.3)"
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            JOIN THE WAITLIST NOW
-          </motion.button>
+          <div className="flex justify-center mt-10">
+            <motion.button 
+              onClick={() => setIsWaitlistOpen(true)}
+              className="premium-button w-full sm:w-auto px-8 sm:px-16 py-4 sm:py-5 text-base md:text-lg shadow-[0_0_50px_-10px_rgba(212,175,55,0.4)] whitespace-nowrap"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              JOIN THE WAITLIST NOW
+            </motion.button>
+          </div>
         </div>
       </section>
 
@@ -1239,7 +1400,7 @@ export default function App() {
             <div>
               <h4 className="text-brand-off-white font-bold mb-6 uppercase tracking-widest text-xs">Quick Links</h4>
               <ul className="space-y-4 text-sm text-brand-off-white/70">
-                <li><button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-brand-gold transition-colors">Join Waitlist</button></li>
+                <li><button onClick={() => setIsWaitlistOpen(true)} className="hover:text-brand-gold transition-colors">Join Waitlist</button></li>
                 <li><a href="#about" className="hover:text-brand-gold transition-colors">About Elizabeth</a></li>
                 <li><a href="#skills" className="hover:text-brand-gold transition-colors">W.A.V.E. Skills</a></li>
                 <li><a href="#pricing" className="hover:text-brand-gold transition-colors">Pricing Tiers</a></li>
@@ -1316,7 +1477,7 @@ export default function App() {
             className="fixed bottom-6 left-6 right-6 z-[90] md:hidden"
           >
             <button 
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => setIsWaitlistOpen(true)}
               className="premium-button w-full shadow-2xl shadow-brand-gold/40"
             >
               JOIN THE WAITLIST <ArrowRight className="w-5 h-5" />
