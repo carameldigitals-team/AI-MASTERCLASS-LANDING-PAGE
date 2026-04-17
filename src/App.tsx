@@ -264,7 +264,7 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
           We're redirecting you to the WhatsApp group now. If it doesn't happen automatically, click the button below:
         </p>
         <a 
-          href="https://chat.whatsapp.com/ILf8UoOCCuvEsomvo5sQx1?mode=gi_t"
+          href="https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-2 w-full bg-brand-gold text-brand-blue-dark font-bold py-3 rounded-xl shadow-lg hover:bg-brand-gold-light transition-all"
@@ -524,7 +524,7 @@ export default function App() {
     setIsSubmitted(true); // Show success state immediately for visual feedback
     
     // The EXACT WhatsApp link provided by the user
-    const whatsappUrl = "https://chat.whatsapp.com/ILf8UoOCCuvEsomvo5sQx1";
+    const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
     
     const formData = new FormData(form);
     const data = {
