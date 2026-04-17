@@ -29,8 +29,12 @@ async function startServer() {
       formData.append("waphone", waphone);
       formData.append("zq", "41213");
       formData.append("fid", "5f66a80141213");
+      formData.append("pid", "");
       formData.append("bumppid", "0");
+      formData.append("cid", "");
       formData.append("usp", "0");
+      formData.append("grk", "");
+      formData.append("pvar", "");
       formData.append("submit", "JOIN THE WAITLIST NOW");
 
       // Send to Wamation

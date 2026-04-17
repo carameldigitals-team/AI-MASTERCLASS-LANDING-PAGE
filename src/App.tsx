@@ -94,14 +94,14 @@ const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
         >
           <h3 className="font-serif text-2xl font-bold text-brand-gold-light mb-6">Terms & Conditions</h3>
           <div className="space-y-4 text-brand-off-white/90 text-sm leading-relaxed max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-            <p>BY SUBMITTING THIS FORM AND JOINING OUR WAITLIST, You agree to the following terms:</p>
+            <p>BY SUBMITTING THIS FORM AND DOWNLOADING OUR FREE AI STARTER KIT, You agree to the following terms:</p>
             <ol className="list-decimal pl-5 space-y-3">
               <li>To receive relevant AI business tips and updates via your WhatsApp DM in the future.</li>
-              <li>That the information shared during the masterclass is for your personal or internal business purposes only, and not to be reshared commercially, redistributed, or resold.</li>
+              <li>That the templates will be used for your personal or internal business purposes only, not to be re shared commercially, redistribute or resell.</li>
               <li>We may revoke access if you violate these terms.</li>
             </ol>
             <p className="pt-4 border-t border-brand-gold/10 font-medium">
-              THE 4 AI SKILLS MASTERCLASS is exclusively intellectual property of CARAMEL DIGITALS and is protected under copyright law.
+              THE PROFESSIONAL'S AI STARTER KIT is exclusively intellectual property of CARAMEL DIGITALS and is protected under copyright law.
               <br />
               © COPYRIGHT 2026 Caramel Digitals. ALL RIGHTS RESERVED.
             </p>
@@ -177,7 +177,7 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
               required
               name="name"
               type="text" 
-              placeholder="Your first name" 
+              placeholder="Your First Name (e.g John) *" 
               className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-5 py-4 text-brand-off-white placeholder:text-brand-off-white/50 outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base shadow-inner"
             />
           </div>
@@ -202,6 +202,7 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
                   required
                   name="waphone"
                   type="tel" 
+                  minLength={7}
                   placeholder="WhatsApp number" 
                   className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-5 py-4 text-brand-off-white placeholder:text-brand-off-white/50 outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base shadow-inner"
                 />
@@ -1192,7 +1193,7 @@ export default function App() {
                 <a href="#" className="bg-brand-gold/10 p-2 rounded-lg text-brand-gold hover:bg-brand-gold hover:text-brand-blue-dark transition-all">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="mailto:support@carameldigital.com" className="bg-brand-gold/10 p-2 rounded-lg text-brand-gold hover:bg-brand-gold hover:text-brand-blue-dark transition-all">
+                <a href="mailto:info@carameldigitals.com" className="bg-brand-gold/10 p-2 rounded-lg text-brand-gold hover:bg-brand-gold hover:text-brand-blue-dark transition-all">
                   <Mail className="w-5 h-5" />
                 </a>
               </div>
@@ -1216,7 +1217,7 @@ export default function App() {
                 <li><a href="https://privacypolicy.carameldigitals.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-gold transition-colors flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Privacy Policy</a></li>
                 <li><a href="https://terms.carameldigitals.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-gold transition-colors">Terms & Conditions</a></li>
                 <li><a href="#earnings-disclaimer" className="hover:text-brand-gold transition-colors">Earnings Disclaimer</a></li>
-                <li><a href="mailto:support@carameldigitals.com" className="hover:text-brand-gold transition-colors">Contact Support</a></li>
+                <li><a href="mailto:info@carameldigitals.com" className="hover:text-brand-gold transition-colors">Contact Support</a></li>
               </ul>
             </div>
 
@@ -1253,7 +1254,7 @@ export default function App() {
               </p>
               <div className="flex gap-6 text-[10px] text-brand-off-white/40">
                 <span>Lagos, Nigeria</span>
-                <span>support@carameldigitals.com</span>
+                <span>info@carameldigitals.com</span>
               </div>
             </div>
           </div>
