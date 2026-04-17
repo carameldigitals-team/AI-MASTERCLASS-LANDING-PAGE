@@ -517,60 +517,62 @@ export default function App() {
   }, []);
 
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     setIsSubmitting(true);
+    setIsSubmitted(true); // Show success state immediately for visual feedback
+    
+    // The EXACT WhatsApp link provided by the user
+    const whatsappUrl = "https://chat.whatsapp.com/ILf8UoOCCuvEsomvo5sQx1";
     
     const formData = new FormData(form);
     const data = {
       name: formData.get('name'),
       wnopfx: formData.get('wnopfx'),
       waphone: formData.get('waphone'),
+      // Hidden tracking fields for lead capture
+      zq: "41213",
+      fid: "5f66a80141213",
+      pid: "",
+      bumppid: "0",
+      cid: "",
+      usp: "0",
+      grk: "",
+      pvar: "",
+      submit: "JOIN THE WAITLIST NOW"
     };
 
-    try {
-      // 1. ATTEMPT LEAD CAPTURE
-      // Note: This calls the local server. On static hosts like Cloudflare/GitHub, 
-      // this fetch will fail with a 404 because the server.ts isn't running.
-      const response = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      // 2. REDIRECT LOGIC
-      // We check if submission was successful OR if we are on a static host (404)
-      // If it's a 404, we redirect anyway because we want the user in the group.
-      if (response.ok || response.status === 404) {
-        if (response.status === 404) {
-          console.warn("Backend not found (Static Hosting). Redirecting to WhatsApp anyway.");
+    // Failsafe Redirection
+    const performRedirect = () => {
+      // 1. Try top-level location change (best for iframes/static)
+      try {
+        if (window.top && window.top !== window) {
+          window.top.location.replace(whatsappUrl);
+        } else {
+          window.location.replace(whatsappUrl);
         }
-        
-        setIsSubmitted(true);
-        const whatsappUrl = "https://chat.whatsapp.com/ILf8UoOCCuvEsomvo5sQx1?mode=gi_t";
-        
-        try {
-          window.location.href = whatsappUrl;
-        } catch (e) {
-          console.error("Redirect failed:", e);
-          window.open(whatsappUrl, "_blank");
-        }
-
-        setTimeout(() => {
-          setIsSubmitted(false);
-          form.reset();
-        }, 3000);
-      } else {
-        // Only error if it's a real server error (500, etc.) and not just a missing backend
-        alert("Something went wrong. Please check your connection and try again.");
+      } catch (err) {
+        // 2. Direct location change fallback
+        window.location.href = whatsappUrl;
       }
-    } catch (error) {
-      console.error("Submission error:", error);
-      alert("Submission failed. Please check your connection.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    };
+
+    // 1. RECORD LEAD (FIRE AND FORGET)
+    // We attempt to save the lead to the backend proxy, but we DO NOT wait for it.
+    // Redirection happens anyway.
+    fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).finally(() => {
+      // Small buffer to let lead record, but redirect even on error
+      setTimeout(performRedirect, 200);
+    });
+
+    // 2. BACKUP REDIRECT (SAFETY NET)
+    // If the fetch hangs or is slow, we trigger the redirect anyway after 1 second
+    setTimeout(performRedirect, 1000);
   };
 
   return (
