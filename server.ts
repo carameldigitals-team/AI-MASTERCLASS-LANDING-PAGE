@@ -20,24 +20,22 @@ async function startServer() {
   // API Route for Waitlist (Wamation Proxy)
   app.post("/api/waitlist", async (req, res) => {
     try {
-      const { name, wnopfx, waphone } = req.body;
+      console.log("Received lead submission request:", JSON.stringify(req.body));
 
-      // Wamation expected fields
+      // Proxy everything from the client to Wamation dynamically
       const formData = new URLSearchParams();
-      formData.append("name", name || "");
-      formData.append("wnopfx", wnopfx || "234");
-      formData.append("waphone", waphone || "");
-      formData.append("zq", "41213");
-      formData.append("fid", "5f66a80141213");
-      formData.append("pid", "");
-      formData.append("bumppid", "0");
-      formData.append("cid", "");
-      formData.append("usp", "0");
-      formData.append("grk", "");
-      formData.append("pvar", "");
-      formData.append("submit", "JOIN THE WAITLIST NOW");
+      for (const [key, value] of Object.entries(req.body)) {
+        formData.append(key, String(value));
+      }
 
-      console.log(`Submitting lead to Wamation: ${name} (${wnopfx}${waphone})`);
+      // Ensure 'submit' is present as it's often required by these processors
+      if (!formData.has("submit")) {
+        formData.append("submit", "JOIN THE WAITLIST NOW");
+      }
+
+      const name = req.body.name || "Unknown";
+      const phone = `${req.body.wnopfx || ""}${req.body.waphone || ""}`;
+      console.log(`Forwarding lead to Wamation: ${name} (${phone})`);
 
       // Send to Wamation with browser-like headers to prevent blocks
       const response = await axios.post("https://app.wamation.com.ng/processor", formData.toString(), {
@@ -52,13 +50,15 @@ async function startServer() {
       });
 
       console.log("Wamation response status:", response.status);
-      console.log("Wamation response data:", response.data);
       
       res.json({ success: true });
     } catch (error: any) {
       console.error("Error submitting to Wamation:", error.message);
       if (error.response) {
-        console.error("Wamation error response:", error.response.data);
+        console.error("Wamation error context:", {
+          status: error.response.status,
+          data: error.response.data
+        });
       }
       res.status(500).json({ success: false, error: "Submission failed" });
     }

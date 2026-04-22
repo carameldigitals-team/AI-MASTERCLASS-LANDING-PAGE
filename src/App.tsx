@@ -637,21 +637,10 @@ export default function App() {
     const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
     
     const formData = new FormData(form);
-    const data = {
-      name: formData.get('name'),
-      wnopfx: formData.get('wnopfx'),
-      waphone: formData.get('waphone'),
-      // Hidden tracking fields for lead capture
-      zq: "41213",
-      fid: "5f66a80141213",
-      pid: "",
-      bumppid: "0",
-      cid: "",
-      usp: "0",
-      grk: "",
-      pvar: "",
-      submit: "JOIN THE WAITLIST NOW"
-    };
+    const data: Record<string, string> = {};
+    formData.forEach((value, key) => {
+      data[key] = value.toString();
+    });
 
     // Failsafe Redirection
     const performRedirect = () => {
