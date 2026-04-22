@@ -668,21 +668,20 @@ export default function App() {
       }
     };
 
-    // 1. RECORD LEAD (FIRE AND FORGET)
-    // We attempt to save the lead to the backend proxy, but we DO NOT wait for it.
-    // Redirection happens anyway.
+    // 1. RECORD LEAD
     fetch('/api/waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
+      keepalive: true, // Crucial: ensures the request completes even if the page navigates
     }).finally(() => {
-      // Small buffer to let lead record, but redirect even on error
-      setTimeout(performRedirect, 200);
+      // Buffer to ensure user sees success state, then redirect
+      setTimeout(performRedirect, 800);
     });
 
     // 2. BACKUP REDIRECT (SAFETY NET)
-    // If the fetch hangs or is slow, we trigger the redirect anyway after 1 second
-    setTimeout(performRedirect, 1000);
+    // Increased to 3 seconds to give the fetch more time to finish or at least be fully sent
+    setTimeout(performRedirect, 3000);
   };
 
   return (

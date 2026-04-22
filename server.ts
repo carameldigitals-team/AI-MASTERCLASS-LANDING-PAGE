@@ -24,9 +24,9 @@ async function startServer() {
 
       // Wamation expected fields
       const formData = new URLSearchParams();
-      formData.append("name", name);
-      formData.append("wnopfx", wnopfx);
-      formData.append("waphone", waphone);
+      formData.append("name", name || "");
+      formData.append("wnopfx", wnopfx || "234");
+      formData.append("waphone", waphone || "");
       formData.append("zq", "41213");
       formData.append("fid", "5f66a80141213");
       formData.append("pid", "");
@@ -37,10 +37,16 @@ async function startServer() {
       formData.append("pvar", "");
       formData.append("submit", "JOIN THE WAITLIST NOW");
 
-      // Send to Wamation
+      console.log(`Submitting lead to Wamation: ${name} (${wnopfx}${waphone})`);
+
+      // Send to Wamation with browser-like headers to prevent blocks
       const response = await axios.post("https://app.wamation.com.ng/processor", formData.toString(), {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+          "Origin": "https://app.wamation.com.ng",
+          "Referer": "https://app.wamation.com.ng/"
         },
         timeout: 10000, // 10 second timeout
       });
