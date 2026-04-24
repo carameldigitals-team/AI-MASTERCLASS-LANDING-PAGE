@@ -637,10 +637,20 @@ export default function App() {
     const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
     
     const formData = new FormData(form);
-    const data: Record<string, string> = {};
-    formData.forEach((value, key) => {
-      data[key] = value.toString();
-    });
+    const data: Record<string, string> = {
+      name: formData.get('name')?.toString() || '',
+      wnopfx: formData.get('wnopfx')?.toString() || '234',
+      waphone: formData.get('waphone')?.toString() || '',
+      zq: formData.get('zq')?.toString() || '41213',
+      fid: formData.get('fid')?.toString() || '5f66a80141213',
+      pid: formData.get('pid')?.toString() || '',
+      bumppid: formData.get('bumppid')?.toString() || '0',
+      cid: formData.get('cid')?.toString() || '',
+      usp: formData.get('usp')?.toString() || '0',
+      grk: formData.get('grk')?.toString() || '',
+      pvar: formData.get('pvar')?.toString() || '',
+      submit: formData.get('submit')?.toString() || 'JOIN THE WAITLIST NOW'
+    };
 
     // Failsafe Redirection
     const performRedirect = () => {
@@ -662,15 +672,21 @@ export default function App() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-      keepalive: true, // Crucial: ensures the request completes even if the page navigates
+      keepalive: true,
+    }).then(response => {
+      if (!response.ok) {
+        console.warn('Lead capture server responded with error');
+      }
+    }).catch(err => {
+      console.error('Lead capture fetch failed:', err);
     }).finally(() => {
-      // Buffer to ensure user sees success state, then redirect
-      setTimeout(performRedirect, 800);
+      // Small delay to ensure state is clear to user
+      setTimeout(performRedirect, 600);
     });
 
     // 2. BACKUP REDIRECT (SAFETY NET)
-    // Increased to 3 seconds to give the fetch more time to finish or at least be fully sent
-    setTimeout(performRedirect, 3000);
+    // If the server is extremely slow, we still want them in the WhatsApp group
+    setTimeout(performRedirect, 4000);
   };
 
   return (

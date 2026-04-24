@@ -20,47 +20,56 @@ async function startServer() {
   // API Route for Waitlist (Wamation Proxy)
   app.post("/api/waitlist", async (req, res) => {
     try {
-      console.log("Received lead submission request:", JSON.stringify(req.body));
+      console.log("Processing lead submission:", JSON.stringify(req.body));
 
-      // Proxy everything from the client to Wamation dynamically
       const formData = new URLSearchParams();
       for (const [key, value] of Object.entries(req.body)) {
         formData.append(key, String(value));
       }
 
-      // Ensure 'submit' is present as it's often required by these processors
       if (!formData.has("submit")) {
         formData.append("submit", "JOIN THE WAITLIST NOW");
       }
 
-      const name = req.body.name || "Unknown";
-      const phone = `${req.body.wnopfx || ""}${req.body.waphone || ""}`;
-      console.log(`Forwarding lead to Wamation: ${name} (${phone})`);
-
-      // Send to Wamation with browser-like headers to prevent blocks
-      const response = await axios.post("https://app.wamation.com.ng/processor", formData.toString(), {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-          "Origin": "https://app.wamation.com.ng",
-          "Referer": "https://app.wamation.com.ng/"
-        },
-        timeout: 10000, // 10 second timeout
-      });
-
-      console.log("Wamation response status:", response.status);
+      const clientReferer = req.headers.referer || req.headers.origin || "https://carameldigitals.com";
       
-      res.json({ success: true });
-    } catch (error: any) {
-      console.error("Error submitting to Wamation:", error.message);
-      if (error.response) {
-        console.error("Wamation error context:", {
-          status: error.response.status,
-          data: error.response.data
-        });
+      const commonHeaders = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Origin": new URL(clientReferer).origin,
+        "Referer": clientReferer
+      };
+
+      // We prioritize /processor as seen in the user's HTML
+      const endpoints = [
+        "https://app.wamation.com.ng/processor",
+        "https://app.wamation.com.ng/processor.php"
+      ];
+
+      let lastError = null;
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Attempting Wamation endpoint: ${endpoint}`);
+          const response = await axios.post(endpoint, formData.toString(), {
+            headers: commonHeaders,
+            timeout: 8000,
+          });
+          
+          if (response.status >= 200 && response.status < 400) {
+            console.log(`Success at ${endpoint}. Status: ${response.status}`);
+            return res.json({ success: true, endpoint });
+          }
+        } catch (err: any) {
+          lastError = err;
+          console.error(`Failed at ${endpoint}: ${err.message}`);
+        }
       }
-      res.status(500).json({ success: false, error: "Submission failed" });
+
+      throw lastError || new Error("All Wamation endpoints failed");
+    } catch (error: any) {
+      console.error("Critical failure in Wamation proxy:", error.message);
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 
