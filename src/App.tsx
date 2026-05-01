@@ -639,8 +639,10 @@ export default function App() {
     const formData = new FormData(form);
     const data: Record<string, string> = {
       name: formData.get('name')?.toString() || '',
+      firstname: formData.get('name')?.toString() || '', // Alias for some processors
       wnopfx: formData.get('wnopfx')?.toString() || '234',
       waphone: formData.get('waphone')?.toString() || '',
+      phone: formData.get('waphone')?.toString() || '', // Alias for some processors
       zq: formData.get('zq')?.toString() || '41213',
       fid: formData.get('fid')?.toString() || '5f66a80141213',
       pid: formData.get('pid')?.toString() || '',
@@ -653,7 +655,10 @@ export default function App() {
     };
 
     // Failsafe Redirection
+    let redirectTriggered = false;
     const performRedirect = () => {
+      if (redirectTriggered) return;
+      redirectTriggered = true;
       // 1. Try top-level location change (best for iframes/static)
       try {
         if (window.top && window.top !== window) {
@@ -668,6 +673,7 @@ export default function App() {
     };
 
     // 1. RECORD LEAD
+    console.log('Sending lead to capture proxy...');
     fetch('/api/waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -676,17 +682,19 @@ export default function App() {
     }).then(response => {
       if (!response.ok) {
         console.warn('Lead capture server responded with error');
+      } else {
+        console.log('Lead capture successful');
       }
     }).catch(err => {
       console.error('Lead capture fetch failed:', err);
     }).finally(() => {
-      // Small delay to ensure state is clear to user
-      setTimeout(performRedirect, 600);
+      // Small delay to ensure state is clear to user, then redirect
+      setTimeout(performRedirect, 1000);
     });
 
     // 2. BACKUP REDIRECT (SAFETY NET)
     // If the server is extremely slow, we still want them in the WhatsApp group
-    setTimeout(performRedirect, 4000);
+    setTimeout(performRedirect, 5000);
   };
 
   return (

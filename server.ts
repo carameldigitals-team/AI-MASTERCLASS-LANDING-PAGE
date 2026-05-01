@@ -42,9 +42,12 @@ async function startServer() {
       };
 
       // We prioritize /processor as seen in the user's HTML
+      // Fallbacks cover common domain variations for this CRM
       const endpoints = [
         "https://app.wamation.com.ng/processor",
-        "https://app.wamation.com.ng/processor.php"
+        "https://app.wamation.com.ng/processor.php",
+        "https://app.wamation.io/processor",
+        "https://app.wamat.io/processor"
       ];
 
       let lastError = null;
@@ -53,16 +56,25 @@ async function startServer() {
           console.log(`Attempting Wamation endpoint: ${endpoint}`);
           const response = await axios.post(endpoint, formData.toString(), {
             headers: commonHeaders,
-            timeout: 8000,
+            timeout: 10000,
           });
           
           if (response.status >= 200 && response.status < 400) {
             console.log(`Success at ${endpoint}. Status: ${response.status}`);
-            return res.json({ success: true, endpoint });
+            // Check if the response body contains error indicators (some endpoints return 200 with error text)
+            const bodyPreview = String(response.data).toLowerCase();
+            if (bodyPreview.includes("error") && bodyPreview.length < 500) {
+              console.warn(`Endpoint returned 200 but body contains "error": ${bodyPreview.substring(0, 100)}`);
+              // We don't return yet, try next endpoint if this looks like a generic error page
+            } else {
+              return res.json({ success: true, endpoint });
+            }
           }
         } catch (err: any) {
           lastError = err;
-          console.error(`Failed at ${endpoint}: ${err.message}`);
+          const status = err.response?.status;
+          const data = err.response?.data ? JSON.stringify(err.response.data).substring(0, 200) : "No data";
+          console.error(`Failed at ${endpoint}: [${status}] ${err.message}. Response: ${data}`);
         }
       }
 
