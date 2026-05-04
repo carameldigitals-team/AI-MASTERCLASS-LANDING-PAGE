@@ -33,52 +33,68 @@ async function startServer() {
 
       const clientReferer = req.headers.referer || req.headers.origin || "https://carameldigitals.com";
       
+      // Set browser-like headers. Hardcoding referer to the actual domain
+      // often bypasses CRM security filters that block unknown origins.
+      const targetDomain = "https://carameldigitals.com";
       const commonHeaders = {
         "Content-Type": "application/x-www-form-urlencoded",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Origin": new URL(clientReferer).origin,
-        "Referer": clientReferer
+        "Accept-Language": "en-US,en;q=0.9",
+        "Origin": targetDomain,
+        "Referer": targetDomain + "/",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
       };
 
       // We prioritize /processor as seen in the user's HTML
-      // Fallbacks cover common domain variations for this CRM
       const endpoints = [
         "https://app.wamation.com.ng/processor",
         "https://app.wamation.com.ng/processor.php",
         "https://app.wamation.io/processor",
-        "https://app.wamat.io/processor"
+        "https://app.wamat.io/processor",
+        "https://appv2.wamation.com.ng/processor"
       ];
 
       let lastError = null;
+      let success = false;
+
       for (const endpoint of endpoints) {
         try {
-          console.log(`Attempting Wamation endpoint: ${endpoint}`);
+          console.log(`Forwarding lead to ${endpoint}...`);
           const response = await axios.post(endpoint, formData.toString(), {
             headers: commonHeaders,
-            timeout: 10000,
+            timeout: 12000,
+            validateStatus: () => true // Handle 3xx or 4xx manually for detail
           });
           
+          const bodyPreview = String(response.data).toLowerCase();
+          console.log(`Endpoint ${endpoint} returned status ${response.status}. Body length: ${bodyPreview.length}`);
+
+          // Some endpoints return 200 but contain "error" in text
           if (response.status >= 200 && response.status < 400) {
-            console.log(`Success at ${endpoint}. Status: ${response.status}`);
-            // Check if the response body contains error indicators (some endpoints return 200 with error text)
-            const bodyPreview = String(response.data).toLowerCase();
             if (bodyPreview.includes("error") && bodyPreview.length < 500) {
-              console.warn(`Endpoint returned 200 but body contains "error": ${bodyPreview.substring(0, 100)}`);
-              // We don't return yet, try next endpoint if this looks like a generic error page
-            } else {
-              return res.json({ success: true, endpoint });
+              console.warn(`Potential error in response body from ${endpoint}: ${bodyPreview}`);
+              lastError = new Error(`CRM returned success status but error message: ${bodyPreview}`);
+              continue;
             }
+            
+            console.log(`Successful lead capture verified at ${endpoint}`);
+            success = true;
+            return res.json({ success: true, endpoint });
+          } else {
+            console.error(`Endpoint ${endpoint} failed with status ${response.status}. Body: ${bodyPreview.substring(0, 200)}`);
+            lastError = new Error(`CRM returned status ${response.status}`);
           }
         } catch (err: any) {
           lastError = err;
-          const status = err.response?.status;
-          const data = err.response?.data ? JSON.stringify(err.response.data).substring(0, 200) : "No data";
-          console.error(`Failed at ${endpoint}: [${status}] ${err.message}. Response: ${data}`);
+          console.error(`Network error at ${endpoint}: ${err.message}`);
         }
       }
 
-      throw lastError || new Error("All Wamation endpoints failed");
+      if (!success) {
+        throw lastError || new Error("All lead capture endpoints failed");
+      }
     } catch (error: any) {
       console.error("Critical failure in Wamation proxy:", error.message);
       res.status(500).json({ success: false, error: error.message });

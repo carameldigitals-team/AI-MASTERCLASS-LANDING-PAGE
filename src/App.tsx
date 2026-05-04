@@ -307,12 +307,15 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
                 required
                 className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-4 py-4 text-brand-off-white outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base appearance-none cursor-pointer shadow-inner"
               >
-                <option value="234">+234 (NG)</option>
-                <option value="1">+1 (US/CA)</option>
+                <option value="234">+234 (Nigeria)</option>
+                <option value="233">+233 (Ghana)</option>
                 <option value="44">+44 (UK)</option>
-                <option value="233">+233 (GH)</option>
-                <option value="27">+27 (SA)</option>
+                <option value="1">+1 (USA/Canada)</option>
+                <option value="27">+27 (South Africa)</option>
+                <option value="254">+254 (Kenya)</option>
                 <option value="971">+971 (UAE)</option>
+                <option value="225">+225 (Ivory Coast)</option>
+                <option value="251">+251 (Ethiopia)</option>
               </select>
             </div>
             <div className="w-full sm:w-2/3">
@@ -321,7 +324,7 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
                   name="waphone"
                   type="tel" 
                   minLength={7}
-                  placeholder="WhatsApp number" 
+                  placeholder="WhatsApp number (e.g. 803...)" 
                   className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-5 py-4 text-brand-off-white placeholder:text-brand-off-white/50 outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base shadow-inner"
                 />
             </div>
@@ -639,19 +642,21 @@ export default function App() {
     const formData = new FormData(form);
     const data: Record<string, string> = {
       name: formData.get('name')?.toString() || '',
-      firstname: formData.get('name')?.toString() || '', // Alias for some processors
+      firstname: formData.get('name')?.toString() || '', // Alias
       wnopfx: formData.get('wnopfx')?.toString() || '234',
       waphone: formData.get('waphone')?.toString() || '',
-      phone: formData.get('waphone')?.toString() || '', // Alias for some processors
-      zq: formData.get('zq')?.toString() || '41213',
-      fid: formData.get('fid')?.toString() || '5f66a80141213',
-      pid: formData.get('pid')?.toString() || '',
-      bumppid: formData.get('bumppid')?.toString() || '0',
-      cid: formData.get('cid')?.toString() || '',
-      usp: formData.get('usp')?.toString() || '0',
-      grk: formData.get('grk')?.toString() || '',
-      pvar: formData.get('pvar')?.toString() || '',
-      submit: formData.get('submit')?.toString() || 'JOIN THE WAITLIST NOW'
+      phone: formData.get('waphone')?.toString() || '', // Alias
+      email: '', // Often required by CRM processors
+      // Hidden tracking fields exactly from user snippet
+      zq: "41213",
+      fid: "5f66a80141213",
+      pid: "",
+      bumppid: "0",
+      cid: "",
+      usp: "0",
+      grk: "",
+      pvar: "",
+      submit: "JOIN THE WAITLIST NOW"
     };
 
     // Failsafe Redirection
@@ -679,22 +684,23 @@ export default function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
       keepalive: true,
-    }).then(response => {
+    }).then(async (response) => {
       if (!response.ok) {
         console.warn('Lead capture server responded with error');
       } else {
-        console.log('Lead capture successful');
+        const result = await response.json();
+        console.log('Lead capture successful at:', result.endpoint);
       }
     }).catch(err => {
       console.error('Lead capture fetch failed:', err);
     }).finally(() => {
-      // Small delay to ensure state is clear to user, then redirect
-      setTimeout(performRedirect, 1000);
+      // Small delay of 800ms to ensure the "Success" state renders, then redirect
+      setTimeout(performRedirect, 800);
     });
 
     // 2. BACKUP REDIRECT (SAFETY NET)
-    // If the server is extremely slow, we still want them in the WhatsApp group
-    setTimeout(performRedirect, 5000);
+    // If anything stalls, we MUST get them to the WhatsApp group within 4 seconds
+    setTimeout(performRedirect, 4000);
   };
 
   return (
