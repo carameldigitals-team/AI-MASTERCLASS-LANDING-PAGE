@@ -167,13 +167,20 @@ const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     )}
   </AnimatePresence>
 );
-
 const WaitlistModal = ({ 
   isOpen, 
   onClose, 
+  isSubmitted, 
+  isSubmitting, 
+  setIsTermsOpen, 
+  handleSubmit 
 }: { 
   isOpen: boolean, 
   onClose: () => void,
+  isSubmitted: boolean;
+  isSubmitting: boolean;
+  setIsTermsOpen: (open: boolean) => void;
+  handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }) => (
   <AnimatePresence>
     {isOpen && (
@@ -203,13 +210,20 @@ const WaitlistModal = ({
             <h3 className="font-serif text-3xl font-bold text-brand-gold-light mb-2">Secure Your Spot</h3>
             <p className="text-brand-off-white/70 text-sm">Fill the form below to join the AI W.A.V.E. Masterclass waitlist.</p>
           </div>
-
-          <WaitlistForm />
+ 
+          <WaitlistForm 
+            idPrefix="modal" 
+            isSubmitted={isSubmitted} 
+            isSubmitting={isSubmitting} 
+            setIsTermsOpen={setIsTermsOpen} 
+            handleSubmit={handleSubmit} 
+          />
         </motion.div>
       </div>
     )}
   </AnimatePresence>
 );
+
 
 const FaqItem = ({ question, answer }: FaqItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -254,7 +268,7 @@ interface WaitlistFormProps {
   handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-const WaitlistForm = () => (
+const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, handleSubmit }: WaitlistFormProps) => (
   <motion.div 
     initial={{ opacity: 0, y: 30, scale: 0.95 }}
     whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -262,21 +276,105 @@ const WaitlistForm = () => (
     transition={{ duration: 0.5, ease: "easeOut" }}
     className="max-w-md mx-auto w-full"
   >
-    <div className="w-full bg-white rounded-xl overflow-hidden shadow-2xl min-h-[450px]">
-      <iframe 
-        id="iFrame1" 
-        src="https://app.wamation.com.ng/formframe?formid=5f66a80141213" 
-        frameBorder="0" 
-        scrolling="no" 
-        width="100%" 
-        style={{ height: '550px', border: 'none' }} 
-        name="wamform"
-        title="Wamation Registration Form"
-      />
+    {!isSubmitted ? (
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-5">
+          <div className="relative group">
+            <label className="block text-[11px] font-mono uppercase tracking-[0.2em] text-brand-gold-light/60 mb-2 font-bold px-1 transition-colors group-focus-within:text-brand-gold">First Name *</label>
+            <input 
+              required
+              name="name"
+              type="text" 
+              placeholder="e.g. John" 
+              className="w-full bg-brand-blue-navy/60 border-2 border-brand-gold/20 rounded-2xl px-6 py-4 text-brand-off-white placeholder:text-brand-off-white/20 outline-none focus:border-brand-gold focus:bg-brand-blue-navy/80 focus:ring-4 focus:ring-brand-gold/5 transition-all text-lg font-medium shadow-inner"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-[11px] font-mono uppercase tracking-[0.2em] text-brand-gold-light/60 mb-2 font-bold px-1 transition-colors group-focus-within:text-brand-gold">WhatsApp Number *</label>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="w-full sm:w-[140px]">
+                <div className="relative h-full">
+                  <select 
+                    name="wnopfx"
+                    required
+                    className="w-full h-full bg-brand-blue-navy/60 border-2 border-brand-gold/20 rounded-2xl px-4 py-4 text-brand-off-white outline-none focus:border-brand-gold transition-all text-lg font-medium appearance-none cursor-pointer shadow-inner"
+                  >
+                    <option value="234">+234 (NG)</option>
+                    <option value="233">+233 (GH)</option>
+                    <option value="44">+44 (UK)</option>
+                    <option value="1">+1 (US)</option>
+                    <option value="27">+27 (SA)</option>
+                    <option value="254">+254 (KE)</option>
+                    <option value="971">+971 (UAE)</option>
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-gold/40 pointer-events-none" />
+                </div>
+              </div>
+              <div className="flex-1">
+                  <input 
+                    required
+                    name="waphone"
+                    type="tel" 
+                    minLength={7}
+                    placeholder="803 123 4567" 
+                    className="w-full bg-brand-blue-navy/60 border-2 border-brand-gold/20 rounded-2xl px-6 py-4 text-brand-off-white placeholder:text-brand-off-white/20 outline-none focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/5 transition-all text-lg font-medium shadow-inner"
+                  />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 text-left px-1 py-1">
+          <input 
+            required 
+            type="checkbox" 
+            id={`${idPrefix}-terms`}
+            className="mt-1.5 accent-brand-gold w-5 h-5 cursor-pointer rounded-lg"
+          />
+          <label htmlFor={`${idPrefix}-terms`} className="text-[13px] text-brand-off-white/70 leading-relaxed cursor-pointer select-none font-medium">
+            I agree to the <button type="button" onClick={() => setIsTermsOpen(true)} className="text-brand-gold hover:text-brand-gold-light underline underline-offset-2 font-bold transition-colors">Terms and Conditions</button>
+          </label>
+        </div>
+
+        <motion.button 
+          disabled={isSubmitting}
+          type="submit"
+          className="premium-button w-full py-5 text-xl relative group overflow-hidden shadow-[0_0_40px_-5px_rgba(212,175,55,0.4)]"
+          whileTap={{ scale: 0.98 }}
+        >
+          <span className="relative z-10 flex items-center justify-center gap-3 font-serif italic">
+            {isSubmitting ? 'PROCESSING...' : 'JOIN THE WAITLIST NOW'}
+            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </span>
+        </motion.button>
+      </form>
+    ) : (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-brand-gold/5 border-2 border-brand-gold/20 rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden backdrop-blur-xl"
+      >
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent" />
+        <div className="w-20 h-20 bg-brand-gold rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-brand-gold/30">
+          <Check className="w-10 h-10 text-brand-blue-dark" />
+        </div>
+        <h3 className="font-serif text-3xl font-bold text-brand-gold-light mb-4 italic">Success!</h3>
+        <p className="text-brand-off-white font-medium text-lg leading-relaxed mb-8">
+          You're on the whitelist! Redirecting to the WhatsApp community...
+        </p>
+        <div className="flex justify-center items-center gap-2">
+          <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce"></div>
+        </div>
+      </motion.div>
+    )}
+    
+    <div className="flex items-center justify-center gap-2 mt-8 py-4 border-t border-brand-gold/5">
+      <ShieldCheck className="w-4 h-4 text-brand-gold/40" />
+      <span className="text-[10px] md:text-xs text-brand-off-white/40 uppercase tracking-widest font-mono">End-to-End Secure Lead Capture</span>
     </div>
-    <p className="text-[10px] md:text-xs text-brand-off-white/90 font-medium flex items-center justify-center gap-2 mt-4">
-      <ShieldCheck className="w-4 h-4 text-brand-gold" /> NO SPAM. YOUR PRIVACY IS SECURE. <a href="https://privacypolicy.carameldigitals.com/" target="_blank" rel="noopener noreferrer" className="text-brand-gold-light underline hover:text-brand-gold transition-colors">SEE OUR PRIVACY POLICY.</a>
-    </p>
   </motion.div>
 );
 
@@ -506,8 +604,10 @@ const AuthoritySection = () => (
 );
 
 export default function App() {
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
 
   useEffect(() => {
@@ -518,6 +618,73 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    setIsSubmitting(true);
+    
+    // User requested redirect to WhatsApp
+    const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
+    
+    const formData = new FormData(form);
+    const data: Record<string, string> = {
+      name: formData.get('name')?.toString() || '',
+      firstname: formData.get('name')?.toString() || '',
+      wnopfx: formData.get('wnopfx')?.toString() || '234',
+      waphone: formData.get('waphone')?.toString() || '',
+      phone: formData.get('waphone')?.toString() || '',
+      email: '', 
+      zq: "41213",
+      fid: "5f66a80141213",
+      pid: "",
+      bumppid: "0",
+      cid: "",
+      usp: "0",
+      grk: "",
+      pvar: "",
+      submit: "JOIN THE WAITLIST NOW"
+    };
+
+    // Failsafe Redirection
+    let redirectTriggered = false;
+    const performRedirect = () => {
+      if (redirectTriggered) return;
+      redirectTriggered = true;
+      try {
+        if (window.top && window.top !== window) {
+          window.top.location.replace(whatsappUrl);
+        } else {
+          window.location.replace(whatsappUrl);
+        }
+      } catch (err) {
+        window.location.href = whatsappUrl;
+      }
+    };
+
+    // We show success state immediately for better UX
+    setIsSubmitted(true);
+
+    fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      keepalive: true,
+    }).then(async (response) => {
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Lead captured via:', result.endpoint);
+      }
+    }).catch(err => {
+      console.error('Lead capture error:', err);
+    }).finally(() => {
+      // Redirect after showing the success message for a moment
+      setTimeout(performRedirect, 1200);
+    });
+
+    // Backup redirect
+    setTimeout(performRedirect, 5000);
+  };
+
   return (
     <div className="relative min-h-screen selection:bg-brand-gold selection:text-brand-blue-dark">
       <SkillsTicker />
@@ -526,6 +693,10 @@ export default function App() {
       <WaitlistModal 
         isOpen={isWaitlistOpen} 
         onClose={() => setIsWaitlistOpen(false)} 
+        isSubmitted={isSubmitted}
+        isSubmitting={isSubmitting}
+        setIsTermsOpen={setIsTermsOpen}
+        handleSubmit={handleSubmit}
       />
       <div className="noise-overlay" />
       
@@ -540,7 +711,7 @@ export default function App() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-10"
+          className="relative z-10 w-full"
         >
           <motion.div 
             animate={{ 
@@ -558,7 +729,7 @@ export default function App() {
             }}
             className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-5 py-2 mb-8 shadow-2xl"
           >
-            <span className="text-xs md:text-sm font-mono tracking-[0.2em] uppercase text-brand-gold-light">
+            <span className="text-xs md:text-sm font-mono tracking-[0.2em] uppercase text-brand-gold-light font-bold">
               ⭐ INTRODUCING THE AI W.A.V.E. MASTERCLASS — LIMITED SEATS AVAILABLE
             </span>
           </motion.div>
@@ -591,11 +762,11 @@ export default function App() {
               { amount: '₦500K–2M+ ($333–$1,333+)', label: 'Monthly (video creators)', icon: Video },
               { amount: '₦3K–50K ($2–$33)', label: 'Per digital product', icon: Smartphone },
               { amount: '₦800K+ ($533+)', label: 'Automation retainers', icon: Zap }
-            ].map((item, i) => (
+            ].map((statItem, i) => (
               <div key={i} className="text-center group">
-                <item.icon className="w-5 h-5 text-brand-gold/40 mx-auto mb-2 group-hover:text-brand-gold transition-colors" />
-                <span className="block font-serif text-sm md:text-base font-bold text-brand-gold-light group-hover:scale-105 transition-transform duration-300">{item.amount}</span>
-                <span className="text-[9px] uppercase tracking-[0.15em] text-brand-off-white/80 font-mono mt-1 block">{item.label}</span>
+                <statItem.icon className="w-5 h-5 text-brand-gold/40 mx-auto mb-2 group-hover:text-brand-gold transition-colors" />
+                <span className="block font-serif text-sm md:text-base font-bold text-brand-gold-light group-hover:scale-105 transition-transform duration-300">{statItem.amount}</span>
+                <span className="text-[9px] uppercase tracking-[0.15em] text-brand-off-white/80 font-mono mt-1 block">{statItem.label}</span>
               </div>
             ))}
           </div>
@@ -645,7 +816,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Form */}
           <WaitlistForm 
             idPrefix="hero" 
             isSubmitted={isSubmitted} 
@@ -1296,7 +1466,6 @@ export default function App() {
         </div>
       </footer>
 
-      {/* --- Sticky Mobile CTA --- */}
       <AnimatePresence>
         {showStickyCta && !isSubmitted && (
           <motion.div
@@ -1307,9 +1476,9 @@ export default function App() {
           >
             <button 
               onClick={() => setIsWaitlistOpen(true)}
-              className="premium-button w-full shadow-2xl shadow-brand-gold/40"
+              className="premium-button w-full shadow-2xl shadow-brand-gold/40 font-serif italic text-base"
             >
-              JOIN THE WAITLIST <ArrowRight className="w-5 h-5" />
+              JOIN THE WAITLIST <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </button>
           </motion.div>
         )}
