@@ -171,17 +171,9 @@ const TermsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 const WaitlistModal = ({ 
   isOpen, 
   onClose, 
-  isSubmitted, 
-  isSubmitting, 
-  setIsTermsOpen, 
-  handleSubmit 
 }: { 
   isOpen: boolean, 
   onClose: () => void,
-  isSubmitted: boolean;
-  isSubmitting: boolean;
-  setIsTermsOpen: (open: boolean) => void;
-  handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }) => (
   <AnimatePresence>
     {isOpen && (
@@ -201,7 +193,7 @@ const WaitlistModal = ({
         >
           <button 
             onClick={onClose}
-            className="absolute top-6 right-6 text-brand-off-white/40 hover:text-brand-gold transition-colors"
+            className="absolute top-6 right-6 text-brand-off-white/40 hover:text-brand-gold transition-colors z-50"
           >
             <XCircle className="w-8 h-8" />
           </button>
@@ -212,13 +204,7 @@ const WaitlistModal = ({
             <p className="text-brand-off-white/70 text-sm">Fill the form below to join the AI W.A.V.E. Masterclass waitlist.</p>
           </div>
 
-          <WaitlistForm 
-            idPrefix="modal" 
-            isSubmitted={isSubmitted} 
-            isSubmitting={isSubmitting} 
-            setIsTermsOpen={setIsTermsOpen} 
-            handleSubmit={handleSubmit} 
-          />
+          <WaitlistForm />
         </motion.div>
       </div>
     )}
@@ -268,122 +254,29 @@ interface WaitlistFormProps {
   handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
 }
 
-const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, handleSubmit }: WaitlistFormProps) => (
+const WaitlistForm = () => (
   <motion.div 
     initial={{ opacity: 0, y: 30, scale: 0.95 }}
     whileInView={{ opacity: 1, y: 0, scale: 1 }}
     viewport={{ once: false }}
     transition={{ duration: 0.5, ease: "easeOut" }}
-    className="max-w-md mx-auto"
+    className="max-w-md mx-auto w-full"
   >
-    {!isSubmitted ? (
-      <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Wamation Tracking Fields */}
-        <input type="hidden" name="zq" value="41213" />
-        <input type="hidden" name="fid" value="5f66a80141213" />
-        <input type="hidden" name="pid" value="" />
-        <input type="hidden" name="bumppid" value="0" />
-        <input type="hidden" name="cid" value="" />
-        <input type="hidden" name="usp" value="0" />
-        <input type="hidden" name="grk" value="" />
-        <input type="hidden" name="pvar" value="" />
-        <input type="hidden" name="submit" value="JOIN THE WAITLIST NOW" />
-
-        <div className="space-y-4">
-          <div className="relative group">
-            <input 
-              required
-              name="name"
-              type="text" 
-              placeholder="Your First Name (e.g John) *" 
-              className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-5 py-4 text-brand-off-white placeholder:text-brand-off-white/50 outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base shadow-inner"
-            />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="w-full sm:w-1/3">
-              <select 
-                name="wnopfx"
-                required
-                className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-4 py-4 text-brand-off-white outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base appearance-none cursor-pointer shadow-inner"
-              >
-                <option value="234">+234 (Nigeria)</option>
-                <option value="233">+233 (Ghana)</option>
-                <option value="44">+44 (UK)</option>
-                <option value="1">+1 (USA/Canada)</option>
-                <option value="27">+27 (South Africa)</option>
-                <option value="254">+254 (Kenya)</option>
-                <option value="971">+971 (UAE)</option>
-                <option value="225">+225 (Ivory Coast)</option>
-                <option value="251">+251 (Ethiopia)</option>
-              </select>
-            </div>
-            <div className="w-full sm:w-2/3">
-                <input 
-                  required
-                  name="waphone"
-                  type="tel" 
-                  minLength={7}
-                  placeholder="WhatsApp number (e.g. 803...)" 
-                  className="w-full bg-brand-blue-navy/40 border border-brand-gold/20 rounded-xl px-5 py-4 text-brand-off-white placeholder:text-brand-off-white/50 outline-none focus:border-brand-gold/50 focus:bg-brand-blue-navy/60 transition-all text-base shadow-inner"
-                />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 text-left px-1">
-          <input 
-            required 
-            type="checkbox" 
-            id={`${idPrefix}-terms`}
-            className="mt-1.5 accent-brand-gold w-4 h-4"
-          />
-          <label htmlFor={`${idPrefix}-terms`} className="text-[13px] text-brand-off-white/90 leading-relaxed font-medium">
-            I agree to the website's <button type="button" onClick={() => setIsTermsOpen(true)} className="text-brand-gold hover:underline font-bold">terms and conditions *</button>
-          </label>
-        </div>
-
-        <motion.button 
-          disabled={isSubmitting}
-          className="premium-button w-full"
-          animate={{ 
-            scale: [1, 1.05, 1],
-            boxShadow: [
-              "0 0 20px rgba(255, 255, 255, 0.3)",
-              "0 0 35px rgba(255, 255, 255, 0.6)",
-              "0 0 20px rgba(255, 255, 255, 0.3)"
-            ]
-          }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          {isSubmitting ? 'SUBMITTING...' : 'JOIN THE WAITLIST NOW'} <ArrowRight className="w-5 h-5" />
-        </motion.button>
-        <p className="text-[10px] md:text-xs text-brand-off-white/90 font-medium flex items-center justify-center gap-2">
-          <ShieldCheck className="w-4 h-4 text-brand-gold" /> NO SPAM. YOUR PRIVACY IS SECURE. <a href="https://privacypolicy.carameldigitals.com/" target="_blank" rel="noopener noreferrer" className="text-brand-gold-light underline hover:text-brand-gold transition-colors">SEE OUR PRIVACY POLICY.</a>
-        </p>
-      </form>
-    ) : (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-brand-gold/10 border border-brand-gold/30 rounded-2xl p-8 text-center"
-      >
-        <div className="text-4xl mb-4">🎉</div>
-        <h3 className="font-serif text-2xl font-bold text-brand-gold-light mb-2">You're on the list!</h3>
-        <p className="text-brand-off-white/90 text-sm leading-relaxed mb-6">
-          We're redirecting you to the WhatsApp group now. If it doesn't happen automatically, click the button below:
-        </p>
-        <a 
-          href="https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 w-full bg-brand-gold text-brand-blue-dark font-bold py-3 rounded-xl shadow-lg hover:bg-brand-gold-light transition-all"
-        >
-          <MessageSquare className="w-5 h-5" />
-          JOIN WHATSAPP GROUP NOW
-        </a>
-      </motion.div>
-    )}
+    <div className="w-full bg-white rounded-xl overflow-hidden shadow-2xl min-h-[450px]">
+      <iframe 
+        id="iFrame1" 
+        src="https://app.wamation.com.ng/formframe?formid=5f66a80141213" 
+        frameBorder="0" 
+        scrolling="no" 
+        width="100%" 
+        style={{ height: '550px', border: 'none' }} 
+        name="wamform"
+        title="Wamation Registration Form"
+      />
+    </div>
+    <p className="text-[10px] md:text-xs text-brand-off-white/90 font-medium flex items-center justify-center gap-2 mt-4">
+      <ShieldCheck className="w-4 h-4 text-brand-gold" /> NO SPAM. YOUR PRIVACY IS SECURE. <a href="https://privacypolicy.carameldigitals.com/" target="_blank" rel="noopener noreferrer" className="text-brand-gold-light underline hover:text-brand-gold transition-colors">SEE OUR PRIVACY POLICY.</a>
+    </p>
   </motion.div>
 );
 
@@ -613,10 +506,8 @@ const AuthoritySection = () => (
 );
 
 export default function App() {
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
 
   useEffect(() => {
@@ -627,82 +518,6 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    setIsSubmitting(true);
-    
-    // Use an optimistic success state
-    setIsSubmitted(true); 
-    
-    // The EXACT WhatsApp link provided by the user
-    const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
-    
-    const formData = new FormData(form);
-    const data: Record<string, string> = {
-      name: formData.get('name')?.toString() || '',
-      firstname: formData.get('name')?.toString() || '', // Alias
-      wnopfx: formData.get('wnopfx')?.toString() || '234',
-      waphone: formData.get('waphone')?.toString() || '',
-      phone: formData.get('waphone')?.toString() || '', // Alias
-      email: '', // Often required by CRM processors
-      // Hidden tracking fields exactly from user snippet
-      zq: "41213",
-      fid: "5f66a80141213",
-      pid: "",
-      bumppid: "0",
-      cid: "",
-      usp: "0",
-      grk: "",
-      pvar: "",
-      submit: "JOIN THE WAITLIST NOW"
-    };
-
-    // Failsafe Redirection
-    let redirectTriggered = false;
-    const performRedirect = () => {
-      if (redirectTriggered) return;
-      redirectTriggered = true;
-      // 1. Try top-level location change (best for iframes/static)
-      try {
-        if (window.top && window.top !== window) {
-          window.top.location.replace(whatsappUrl);
-        } else {
-          window.location.replace(whatsappUrl);
-        }
-      } catch (err) {
-        // 2. Direct location change fallback
-        window.location.href = whatsappUrl;
-      }
-    };
-
-    // 1. RECORD LEAD
-    console.log('Sending lead to capture proxy...');
-    fetch('/api/waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      keepalive: true,
-    }).then(async (response) => {
-      if (!response.ok) {
-        console.warn('Lead capture server responded with error');
-      } else {
-        const result = await response.json();
-        console.log('Lead capture successful at:', result.endpoint);
-      }
-    }).catch(err => {
-      console.error('Lead capture fetch failed:', err);
-    }).finally(() => {
-      // Small delay of 800ms to ensure the "Success" state renders, then redirect
-      setTimeout(performRedirect, 800);
-    });
-
-    // 2. BACKUP REDIRECT (SAFETY NET)
-    // If anything stalls, we MUST get them to the WhatsApp group within 4 seconds
-    setTimeout(performRedirect, 4000);
-  };
-
   return (
     <div className="relative min-h-screen selection:bg-brand-gold selection:text-brand-blue-dark">
       <SkillsTicker />
@@ -711,10 +526,6 @@ export default function App() {
       <WaitlistModal 
         isOpen={isWaitlistOpen} 
         onClose={() => setIsWaitlistOpen(false)} 
-        isSubmitted={isSubmitted}
-        isSubmitting={isSubmitting}
-        setIsTermsOpen={setIsTermsOpen}
-        handleSubmit={handleSubmit}
       />
       <div className="noise-overlay" />
       
