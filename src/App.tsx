@@ -360,9 +360,23 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
           <Check className="w-10 h-10 text-brand-blue-dark" />
         </div>
         <h3 className="font-serif text-3xl font-bold text-brand-gold-light mb-4 italic">Success!</h3>
-        <p className="text-brand-off-white font-medium text-lg leading-relaxed mb-8">
-          You're on the whitelist! Redirecting to the WhatsApp community...
+        <p className="text-brand-off-white font-medium text-lg leading-relaxed mb-6">
+          You're on the whitelist! Redirecting to our WhatsApp community...
         </p>
+        
+        <div className="flex flex-col gap-4 mb-8">
+          <a 
+            href="https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-500/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            <MessageSquare className="w-6 h-6" />
+            JOIN WHATSAPP GROUP NOW
+          </a>
+          <p className="text-[11px] text-brand-off-white/40 uppercase tracking-widest font-mono">Click above if not redirected automatically</p>
+        </div>
+
         <div className="flex justify-center items-center gap-2">
           <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce [animation-delay:-0.3s]"></div>
           <div className="w-2 h-2 bg-brand-gold rounded-full animate-bounce [animation-delay:-0.15s]"></div>
@@ -650,14 +664,30 @@ export default function App() {
     const performRedirect = () => {
       if (redirectTriggered) return;
       redirectTriggered = true;
+      
+      console.log("Triggering redirect to:", whatsappUrl);
+      
+      // Try multiple methods to ensure one works
+      try {
+        // Method 1: location.replace (cleaner, no back history)
+        window.location.replace(whatsappUrl);
+      } catch (e1) {
+        try {
+          // Method 2: location.href (standard)
+          window.location.href = whatsappUrl;
+        } catch (e2) {
+          // Method 3: window.open (popup fallback)
+          window.open(whatsappUrl, '_blank');
+        }
+      }
+      
+      // If we are in an iframe, try to break out as a last resort
       try {
         if (window.top && window.top !== window) {
-          window.top.location.replace(whatsappUrl);
-        } else {
-          window.location.replace(whatsappUrl);
+          window.top.location.href = whatsappUrl;
         }
-      } catch (err) {
-        window.location.href = whatsappUrl;
+      } catch (e3) {
+        // Ignored: cross-origin frame constraints
       }
     };
 
