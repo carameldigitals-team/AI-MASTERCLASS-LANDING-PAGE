@@ -286,6 +286,17 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
               name="name"
               type="text" 
               placeholder="e.g. John" 
+              onKeyDown={(e) => {
+                // Prevent spaces from being typed
+                if (e.key === ' ') {
+                  e.preventDefault();
+                }
+              }}
+              onInput={(e) => {
+                // Force remove any spaces if pasted
+                const target = e.target as HTMLInputElement;
+                target.value = target.value.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+              }}
               className="w-full bg-brand-blue-navy/60 border-2 border-brand-gold/20 rounded-2xl px-6 py-4 text-brand-off-white placeholder:text-brand-off-white/20 outline-none focus:border-brand-gold focus:bg-brand-blue-navy/80 focus:ring-4 focus:ring-brand-gold/5 transition-all text-lg font-medium shadow-inner"
             />
           </div>
@@ -649,10 +660,13 @@ export default function App() {
       rawPhone = rawPhone.substring(1);
     }
 
+    const rawName = formData.get('name')?.toString().trim() || '';
+    const firstName = rawName.split(' ')[0];
+
     const data: Record<string, string> = {
-      name: formData.get('name')?.toString() || '',
-      firstname: formData.get('name')?.toString() || '',
-      fname: formData.get('name')?.toString() || '',
+      name: firstName,
+      firstname: firstName,
+      fname: firstName,
       wnopfx: formData.get('wnopfx')?.toString() || '234',
       waphone: rawPhone,
       phone: rawPhone,
