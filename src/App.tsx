@@ -674,8 +674,8 @@ export default function App() {
       phone: fullPhone,
       wa_phone: fullPhone,
       email: '', 
-      zq: "241213", // Suffix of 6d241213
-      fid: "6d241213",
+      zq: "41213", // Matched from wamation.com.ng/f.php/6d241213 inspection
+      fid: "5f66a80141213", // Matched from wamation.com.ng/f.php/6d241213 inspection
       pid: "",
       bumppid: "0",
       cid: "",

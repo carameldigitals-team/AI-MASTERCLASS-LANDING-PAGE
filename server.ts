@@ -22,9 +22,8 @@ async function startServer() {
     try {
       console.log("Processing lead submission:", JSON.stringify(req.body));
 
-      const fid = req.body.fid || "6d241213";
-      // Theory: zq might be 41213 (historical) or 241213 (suffix of current fid)
-      const zqVariants = ["41213", "241213"];
+      const primaryFid = "5f66a80141213";
+      const secondaryFid = req.body.fid || "6d241213";
       
       // Extract components for mutation
       const prefix = req.body.wnopfx || "234";
@@ -38,11 +37,13 @@ async function startServer() {
         rawPhone = rawPhone.substring(1);
       }
 
-      const buildFormData = (pfx: string, phone: string, useFullInWaphone: boolean, zqValue: string) => {
+      const buildFormData = (pfx: string, phone: string, useFullInWaphone: boolean, zqValue: string, fidValue: string) => {
         const data = new URLSearchParams();
         const full = pfx + phone;
         
         for (const [key, value] of Object.entries(req.body)) {
+          // Skip email if it was originally empty to keep it clean
+          if (key === 'email' && !value) continue;
           data.append(key, String(value));
         }
         
@@ -52,8 +53,8 @@ async function startServer() {
         data.set("phone", full);
         data.set("wa_phone", full);
         data.set("zq", zqValue);
-        data.set("fid", fid);
-        if (!data.has("submit")) data.set("submit", "JOIN THE WAITLIST NOW");
+        data.set("fid", fidValue);
+        data.set("submit", "JOIN THE WAITLIST NOW");
         
         return data;
       };
@@ -69,72 +70,67 @@ async function startServer() {
       };
 
       const endpoints = [
-        `https://wamation.com.ng/f.php/${fid}`,
-        `https://wamation.com.ng/f.php/processor`,
-        `https://wamation.com.ng/processor?fid=${fid}`,
-        "https://wamation.com.ng/processor",
-        "https://app.wamation.com.ng/processor"
+        "https://app.wamation.com.ng/processor", // Primary
+        "https://wamation.com.ng/processor",     // Mirror
+        "https://wamation.com.ng/f.php/processor" // Legacy Mirror
       ];
 
       let lastError = null;
       let success = false;
       let capturedEndpoint = "";
       
-      // We'll iterate through ZQ variants, then phone formats, then endpoints
-      for (const zqVal of zqVariants) {
+      // Prioritize "Split Mode" (phone without prefix) + Primary FID (from HTML)
+      // This most closely mimics the actual form submission that triggers automation.
+      const configs = [
+        { fid: primaryFid, zq: "41213", full: false }, // Split mode - Most likely for automation
+        { fid: primaryFid, zq: "41213", full: true },  // Full mode backup
+        { fid: secondaryFid, zq: "241213", full: false },
+        { fid: secondaryFid, zq: "241213", full: true },
+      ];
+
+      for (const config of configs) {
         if (success) break;
         
-        const dataVariations = [
-          buildFormData(prefix, rawPhone, false, zqVal),
-          buildFormData(prefix, rawPhone, true, zqVal)
-        ];
+        const formData = buildFormData(prefix, rawPhone, config.full, config.zq, config.fid);
+        const currentPhone = formData.get("waphone");
+        console.log(`Trying Config: FID=${config.fid} ZQ=${config.zq} waphone=${currentPhone}`);
 
-        for (const formData of dataVariations) {
+        for (const endpoint of endpoints) {
           if (success) break;
           
-          const currentPhoneFormat = formData.get("waphone");
-          console.log(`Testing ZQ: ${zqVal} | Phone Format: ${currentPhoneFormat}`);
-
-          for (const endpoint of endpoints) {
-            if (success) break;
+          try {
+            const response = await axios.post(endpoint, formData.toString(), {
+              headers: {
+                ...commonHeaders,
+                "Referer": "https://wamation.com.ng/f.php/6d241213"
+              },
+              timeout: 10000, 
+              validateStatus: () => true 
+            });
             
-            for (let attempt = 1; attempt <= 2; attempt++) {
-              try {
-                const response = await axios.post(endpoint, formData.toString(), {
-                  headers: {
-                    ...commonHeaders,
-                    "Referer": endpoint.includes('f.php') ? endpoint : "https://wamation.com.ng/"
-                  },
-                  timeout: 12000,
-                  validateStatus: () => true 
-                });
-                
-                const bodyPreview = String(response.data).toLowerCase();
-                console.log(`[${endpoint}] ZQ:${zqVal} Fmt:${currentPhoneFormat} (A${attempt}) -> Status ${response.status}`);
+            const bodyPreview = String(response.data).toLowerCase();
+            console.log(`[${endpoint}] Result: ${response.status} (Len: ${bodyPreview.length})`);
 
-                if (response.status >= 200 && response.status < 400) {
-                  const isError = bodyPreview.length < 700 && 
-                                  (bodyPreview.includes("error") || 
-                                   bodyPreview.includes("not complete") || 
-                                   bodyPreview.includes("invalid"));
+            if (response.status >= 200 && response.status < 400) {
+              const isError = bodyPreview.length < 800 && 
+                              (bodyPreview.includes("error") || 
+                               bodyPreview.includes("not complete") || 
+                               bodyPreview.includes("invalid"));
 
-                  if (isError) {
-                    lastError = new Error(`CRM Error: ${bodyPreview.substring(0, 150)}`);
-                    console.warn(`CRM reported error: ${bodyPreview.substring(0, 150)}`);
-                    break; // Try next format
-                  }
-                  
-                  success = true;
-                  capturedEndpoint = endpoint;
-                  break; 
-                } else {
-                  lastError = new Error(`Status ${response.status}`);
-                }
-              } catch (err: any) {
-                lastError = err;
-                if (attempt === 1) await new Promise(r => setTimeout(r, 300));
+              if (isError) {
+                lastError = new Error(`CRM Error: ${bodyPreview.substring(0, 150)}`);
+                continue; 
               }
+              
+              success = true;
+              capturedEndpoint = endpoint;
+              break; 
+            } else {
+              lastError = new Error(`Status ${response.status}`);
             }
+          } catch (err: any) {
+            lastError = err;
+            console.warn(`Connection to ${endpoint} failed: ${err.message}`);
           }
         }
       }
