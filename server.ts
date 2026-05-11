@@ -22,93 +22,125 @@ async function startServer() {
     try {
       console.log("Processing lead submission:", JSON.stringify(req.body));
 
-      const formData = new URLSearchParams();
-      for (const [key, value] of Object.entries(req.body)) {
-        formData.append(key, String(value));
-      }
-
-      if (!formData.has("submit")) {
-        formData.append("submit", "JOIN THE WAITLIST NOW");
-      }
-
-      const clientReferer = req.headers.referer || req.headers.origin || "https://carameldigitals.com";
+      const fid = req.body.fid || "6d241213";
+      // Theory: zq might be 41213 (historical) or 241213 (suffix of current fid)
+      const zqVariants = ["41213", "241213"];
       
-      // Set browser-like headers. 
+      // Extract components for mutation
+      const prefix = req.body.wnopfx || "234";
+      let rawPhone = String(req.body.waphone || req.body.phone || "").replace(/\D/g, "");
+      
+      // Basic normalization
+      if (rawPhone.startsWith(prefix)) {
+        rawPhone = rawPhone.substring(prefix.length);
+      }
+      if (rawPhone.startsWith("0")) {
+        rawPhone = rawPhone.substring(1);
+      }
+
+      const buildFormData = (pfx: string, phone: string, useFullInWaphone: boolean, zqValue: string) => {
+        const data = new URLSearchParams();
+        const full = pfx + phone;
+        
+        for (const [key, value] of Object.entries(req.body)) {
+          data.append(key, String(value));
+        }
+        
+        // Overwrite with normalized/specific values
+        data.set("wnopfx", pfx);
+        data.set("waphone", useFullInWaphone ? full : phone);
+        data.set("phone", full);
+        data.set("wa_phone", full);
+        data.set("zq", zqValue);
+        data.set("fid", fid);
+        if (!data.has("submit")) data.set("submit", "JOIN THE WAITLIST NOW");
+        
+        return data;
+      };
+
       const commonHeaders = {
         "Content-Type": "application/x-www-form-urlencoded",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Origin": "https://wamation.com.ng",
-        "Referer": "https://wamation.com.ng/",
         "Cache-Control": "no-cache",
         "Pragma": "no-cache"
       };
 
-      // Priority endpoints based on historical stability and the new f.php structure
       const endpoints = [
-        `https://wamation.com.ng/f.php/${req.body.fid || "6d241213"}`,
-        `https://wamation.com.ng/processor?fid=${req.body.fid || "6d241213"}`,
+        `https://wamation.com.ng/f.php/${fid}`,
+        `https://wamation.com.ng/f.php/processor`,
+        `https://wamation.com.ng/processor?fid=${fid}`,
         "https://wamation.com.ng/processor",
-        "https://app.wamation.com.ng/processor",
-        "https://appv2.wamation.com.ng/processor"
+        "https://app.wamation.com.ng/processor"
       ];
 
       let lastError = null;
       let success = false;
       let capturedEndpoint = "";
+      
+      // We'll iterate through ZQ variants, then phone formats, then endpoints
+      for (const zqVal of zqVariants) {
+        if (success) break;
+        
+        const dataVariations = [
+          buildFormData(prefix, rawPhone, false, zqVal),
+          buildFormData(prefix, rawPhone, true, zqVal)
+        ];
 
-      for (const endpoint of endpoints) {
-        // Retry logic: attempt each endpoint up to 2 times
-        for (let attempt = 1; attempt <= 2; attempt++) {
-          try {
-            console.log(`[Attempt ${attempt}] Forwarding lead to ${endpoint}...`);
-            const response = await axios.post(endpoint, formData.toString(), {
-              headers: {
-                ...commonHeaders,
-                // For f.php links, the referer should often be the specific form URL
-                "Referer": endpoint.includes('f.php') ? endpoint : "https://wamation.com.ng/"
-              },
-              timeout: 15000,
-              validateStatus: () => true 
-            });
+        for (const formData of dataVariations) {
+          if (success) break;
+          
+          const currentPhoneFormat = formData.get("waphone");
+          console.log(`Testing ZQ: ${zqVal} | Phone Format: ${currentPhoneFormat}`);
+
+          for (const endpoint of endpoints) {
+            if (success) break;
             
-            const bodyPreview = String(response.data).toLowerCase();
-            console.log(`Endpoint ${endpoint} (Attempt ${attempt}) returned status ${response.status}. Body length: ${bodyPreview.length}`);
+            for (let attempt = 1; attempt <= 2; attempt++) {
+              try {
+                const response = await axios.post(endpoint, formData.toString(), {
+                  headers: {
+                    ...commonHeaders,
+                    "Referer": endpoint.includes('f.php') ? endpoint : "https://wamation.com.ng/"
+                  },
+                  timeout: 12000,
+                  validateStatus: () => true 
+                });
+                
+                const bodyPreview = String(response.data).toLowerCase();
+                console.log(`[${endpoint}] ZQ:${zqVal} Fmt:${currentPhoneFormat} (A${attempt}) -> Status ${response.status}`);
 
-            // Wamation often redirects (302) on success. 2xx or 3xx should be considered success 
-            // unless the body is tiny and explicitly says "error".
-            if (response.status >= 200 && response.status < 400) {
-              const isSmallError = bodyPreview.length < 500 && 
-                                  bodyPreview.includes("error") && 
-                                  !bodyPreview.includes("success") &&
-                                  !bodyPreview.includes("redirect");
+                if (response.status >= 200 && response.status < 400) {
+                  const isError = bodyPreview.length < 700 && 
+                                  (bodyPreview.includes("error") || 
+                                   bodyPreview.includes("not complete") || 
+                                   bodyPreview.includes("invalid"));
 
-              if (isSmallError) {
-                console.warn(`Potential error in response body from ${endpoint}: ${bodyPreview.substring(0, 200)}`);
-                lastError = new Error(`CRM body error: ${bodyPreview.substring(0, 100)}`);
-                continue; 
+                  if (isError) {
+                    lastError = new Error(`CRM Error: ${bodyPreview.substring(0, 150)}`);
+                    console.warn(`CRM reported error: ${bodyPreview.substring(0, 150)}`);
+                    break; // Try next format
+                  }
+                  
+                  success = true;
+                  capturedEndpoint = endpoint;
+                  break; 
+                } else {
+                  lastError = new Error(`Status ${response.status}`);
+                }
+              } catch (err: any) {
+                lastError = err;
+                if (attempt === 1) await new Promise(r => setTimeout(r, 300));
               }
-              
-              console.log(`Successful lead capture verified at ${endpoint} (Status: ${response.status})`);
-              success = true;
-              capturedEndpoint = endpoint;
-              break; 
-            } else {
-              console.error(`Endpoint ${endpoint} failed with status ${response.status}`);
-              lastError = new Error(`Status ${response.status}`);
             }
-          } catch (err: any) {
-            lastError = err;
-            console.error(`Network error at ${endpoint} (Attempt ${attempt}): ${err.message}`);
-            // Wait a moment before retry
-            if (attempt === 1) await new Promise(resolve => setTimeout(resolve, 500));
           }
         }
-        
-        if (success) {
-          return res.json({ success: true, endpoint: capturedEndpoint });
-        }
+      }
+
+      if (success) {
+        return res.json({ success: true, endpoint: capturedEndpoint });
       }
 
       if (!success) {

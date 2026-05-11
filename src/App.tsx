@@ -662,16 +662,19 @@ export default function App() {
 
     const rawName = formData.get('name')?.toString().trim() || '';
     const firstName = rawName.split(' ')[0];
+    const prefix = formData.get('wnopfx')?.toString() || '234';
+    const fullPhone = prefix + rawPhone;
 
     const data: Record<string, string> = {
       name: firstName,
       firstname: firstName,
       fname: firstName,
-      wnopfx: formData.get('wnopfx')?.toString() || '234',
-      waphone: rawPhone,
-      phone: rawPhone,
+      wnopfx: prefix,
+      waphone: fullPhone, // Try full phone here as well
+      phone: fullPhone,
+      wa_phone: fullPhone,
       email: '', 
-      zq: "41213",
+      zq: "241213", // Suffix of 6d241213
       fid: "6d241213",
       pid: "",
       bumppid: "0",
@@ -679,6 +682,7 @@ export default function App() {
       usp: "0",
       grk: "",
       pvar: "",
+      Submit: "JOIN THE WAITLIST NOW",
       submit: "JOIN THE WAITLIST NOW"
     };
 
@@ -736,7 +740,10 @@ export default function App() {
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Lead capture failed at server:', errorData);
-        alert("There was an issue processing your registration. Please try again or contact support.");
+        
+        // Provide slightly more detail if it's a known error
+        const msg = errorData.error ? `Server Error: ${errorData.error}` : "There was an issue processing your registration. Please check your network or try again.";
+        alert(msg);
         setIsSubmitting(false);
       }
     }).catch(err => {
