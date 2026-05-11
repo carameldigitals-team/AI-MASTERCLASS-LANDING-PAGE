@@ -700,8 +700,8 @@ export default function App() {
       }
     };
 
-    // We show success state immediately for better UX
-    setIsSubmitted(true);
+    // We show a processing state but don't mark as "Submitted" until server confirms
+    setIsSubmitting(true);
 
     fetch('/api/waitlist', {
       method: 'POST',
@@ -711,17 +711,29 @@ export default function App() {
     }).then(async (response) => {
       if (response.ok) {
         const result = await response.json();
-        console.log('Lead captured via:', result.endpoint);
+        console.log('Lead captured successfully via:', result.endpoint);
+        
+        // ONLY mark as submitted once we have backend confirmation
+        setIsSubmitted(true);
+        setIsSubmitting(false);
+
+        // Wait 3 seconds so the user can see the "Success!" message clearly
+        setTimeout(performRedirect, 3500);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Lead capture failed at server:', errorData);
+        alert("There was an issue processing your registration. Please try again or contact support.");
+        setIsSubmitting(false);
       }
     }).catch(err => {
-      console.error('Lead capture error:', err);
-    }).finally(() => {
-      // Redirect after showing the success message for a moment
-      setTimeout(performRedirect, 1200);
+      console.error('Critical lead capture error:', err);
+      // Fallback: If the server is down but user is already this far, 
+      // we might still want to try redirecting after a long delay as a safety net
+      setTimeout(() => {
+        setIsSubmitting(false);
+        performRedirect();
+      }, 5000);
     });
-
-    // Backup redirect
-    setTimeout(performRedirect, 5000);
   };
 
   return (
