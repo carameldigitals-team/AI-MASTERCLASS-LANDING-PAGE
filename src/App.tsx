@@ -641,12 +641,21 @@ export default function App() {
     const whatsappUrl = "https://chat.whatsapp.com/EKtNC2jSnrwI7puLkRMd9P?mode=gi_t";
     
     const formData = new FormData(form);
+    let rawPhone = formData.get('waphone')?.toString() || '';
+    // Remove all non-numeric characters first
+    rawPhone = rawPhone.replace(/\D/g, '');
+    // Normalize phone: strip leading 0 if it exists (common for NG numbers)
+    if (rawPhone.startsWith('0')) {
+      rawPhone = rawPhone.substring(1);
+    }
+
     const data: Record<string, string> = {
       name: formData.get('name')?.toString() || '',
       firstname: formData.get('name')?.toString() || '',
+      fname: formData.get('name')?.toString() || '',
       wnopfx: formData.get('wnopfx')?.toString() || '234',
-      waphone: formData.get('waphone')?.toString() || '',
-      phone: formData.get('waphone')?.toString() || '',
+      waphone: rawPhone,
+      phone: rawPhone,
       email: '', 
       zq: "41213",
       fid: "5f66a80141213",

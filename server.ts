@@ -47,52 +47,68 @@ async function startServer() {
         "Pragma": "no-cache"
       };
 
-      // We prioritize /processor as seen in the user's HTML
+      // Priority endpoints based on historical stability
       const endpoints = [
         "https://app.wamation.com.ng/processor",
         "https://app.wamation.com.ng/processor.php",
         "https://app.wamation.io/processor",
+        "https://appv2.wamation.com.ng/processor",
         "https://app.wamat.io/processor",
-        "https://appv2.wamation.com.ng/processor"
+        "https://wamation.com.ng/processor",
+        `https://app.wamation.com.ng/processor?fid=${req.body.fid || "5f66a80141213"}`
       ];
 
       let lastError = null;
       let success = false;
+      let capturedEndpoint = "";
 
       for (const endpoint of endpoints) {
-        try {
-          console.log(`Forwarding lead to ${endpoint}...`);
-          const response = await axios.post(endpoint, formData.toString(), {
-            headers: commonHeaders,
-            timeout: 12000,
-            validateStatus: () => true // Handle 3xx or 4xx manually for detail
-          });
-          
-          const bodyPreview = String(response.data).toLowerCase();
-          console.log(`Endpoint ${endpoint} returned status ${response.status}. Body length: ${bodyPreview.length}`);
-
-          // Some endpoints return 200 but contain "error" in text
-          if (response.status >= 200 && response.status < 400) {
-            if (bodyPreview.includes("error") && bodyPreview.length < 500) {
-              console.warn(`Potential error in response body from ${endpoint}: ${bodyPreview}`);
-              lastError = new Error(`CRM returned success status but error message: ${bodyPreview}`);
-              continue;
-            }
+        // Retry logic: attempt each endpoint up to 2 times
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            console.log(`[Attempt ${attempt}] Forwarding lead to ${endpoint}...`);
+            const response = await axios.post(endpoint, formData.toString(), {
+              headers: commonHeaders,
+              timeout: 15000, // Increased timeout 
+              validateStatus: () => true 
+            });
             
-            console.log(`Successful lead capture verified at ${endpoint}`);
-            success = true;
-            return res.json({ success: true, endpoint });
-          } else {
-            console.error(`Endpoint ${endpoint} failed with status ${response.status}. Body: ${bodyPreview.substring(0, 200)}`);
-            lastError = new Error(`CRM returned status ${response.status}`);
+            const bodyPreview = String(response.data).toLowerCase();
+            console.log(`Endpoint ${endpoint} (Attempt ${attempt}) returned status ${response.status}. Body length: ${bodyPreview.length}`);
+
+            // Wamation often returns 200/302 even for some failures, but usually a small body with "error" is bad
+            // If it redirects (302) it's almost always a success in their architecture
+            if ((response.status >= 200 && response.status < 400)) {
+              // Check if body specifically indicates a failure (usually small bodies < 300 chars)
+              if (bodyPreview.includes("error") && bodyPreview.length < 500 && !bodyPreview.includes("success")) {
+                console.warn(`Potential error in response body from ${endpoint}: ${bodyPreview.substring(0, 200)}`);
+                lastError = new Error(`CRM body error: ${bodyPreview.substring(0, 100)}`);
+                continue; // Try next attempt or endpoint
+              }
+              
+              console.log(`Successful lead capture verified at ${endpoint}`);
+              success = true;
+              capturedEndpoint = endpoint;
+              break; // Success! Break out of attempts
+            } else {
+              console.error(`Endpoint ${endpoint} failed with status ${response.status}`);
+              lastError = new Error(`Status ${response.status}`);
+            }
+          } catch (err: any) {
+            lastError = err;
+            console.error(`Network error at ${endpoint} (Attempt ${attempt}): ${err.message}`);
+            // Wait a moment before retry
+            if (attempt === 1) await new Promise(resolve => setTimeout(resolve, 500));
           }
-        } catch (err: any) {
-          lastError = err;
-          console.error(`Network error at ${endpoint}: ${err.message}`);
+        }
+        
+        if (success) {
+          return res.json({ success: true, endpoint: capturedEndpoint });
         }
       }
 
       if (!success) {
+        console.error("All lead capture attempts failed. Final error:", lastError?.message);
         throw lastError || new Error("All lead capture endpoints failed");
       }
     } catch (error: any) {
