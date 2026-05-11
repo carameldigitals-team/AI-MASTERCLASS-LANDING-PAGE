@@ -45,15 +45,13 @@ async function startServer() {
         "Pragma": "no-cache"
       };
 
-      // Priority endpoints based on historical stability
+      // Priority endpoints based on historical stability and the new f.php structure
       const endpoints = [
-        "https://wamation.com.ng/processor",
-        "https://wamation.com.ng/f.php/processor",
-        "https://app.wamation.com.ng/processor",
-        "https://app.wamation.com.ng/processor.php",
-        "https://appv2.wamation.com.ng/processor",
+        `https://wamation.com.ng/f.php/${req.body.fid || "6d241213"}`,
         `https://wamation.com.ng/processor?fid=${req.body.fid || "6d241213"}`,
-        `https://app.wamation.com.ng/processor?fid=${req.body.fid || "6d241213"}`
+        "https://wamation.com.ng/processor",
+        "https://app.wamation.com.ng/processor",
+        "https://appv2.wamation.com.ng/processor"
       ];
 
       let lastError = null;
@@ -66,28 +64,36 @@ async function startServer() {
           try {
             console.log(`[Attempt ${attempt}] Forwarding lead to ${endpoint}...`);
             const response = await axios.post(endpoint, formData.toString(), {
-              headers: commonHeaders,
-              timeout: 15000, // Increased timeout 
+              headers: {
+                ...commonHeaders,
+                // For f.php links, the referer should often be the specific form URL
+                "Referer": endpoint.includes('f.php') ? endpoint : "https://wamation.com.ng/"
+              },
+              timeout: 15000,
               validateStatus: () => true 
             });
             
             const bodyPreview = String(response.data).toLowerCase();
             console.log(`Endpoint ${endpoint} (Attempt ${attempt}) returned status ${response.status}. Body length: ${bodyPreview.length}`);
 
-            // Wamation often returns 200/302 even for some failures, but usually a small body with "error" is bad
-            // If it redirects (302) it's almost always a success in their architecture
-            if ((response.status >= 200 && response.status < 400)) {
-              // Check if body specifically indicates a failure (usually small bodies < 300 chars)
-              if (bodyPreview.includes("error") && bodyPreview.length < 500 && !bodyPreview.includes("success")) {
+            // Wamation often redirects (302) on success. 2xx or 3xx should be considered success 
+            // unless the body is tiny and explicitly says "error".
+            if (response.status >= 200 && response.status < 400) {
+              const isSmallError = bodyPreview.length < 500 && 
+                                  bodyPreview.includes("error") && 
+                                  !bodyPreview.includes("success") &&
+                                  !bodyPreview.includes("redirect");
+
+              if (isSmallError) {
                 console.warn(`Potential error in response body from ${endpoint}: ${bodyPreview.substring(0, 200)}`);
                 lastError = new Error(`CRM body error: ${bodyPreview.substring(0, 100)}`);
-                continue; // Try next attempt or endpoint
+                continue; 
               }
               
-              console.log(`Successful lead capture verified at ${endpoint}`);
+              console.log(`Successful lead capture verified at ${endpoint} (Status: ${response.status})`);
               success = true;
               capturedEndpoint = endpoint;
-              break; // Success! Break out of attempts
+              break; 
             } else {
               console.error(`Endpoint ${endpoint} failed with status ${response.status}`);
               lastError = new Error(`Status ${response.status}`);
