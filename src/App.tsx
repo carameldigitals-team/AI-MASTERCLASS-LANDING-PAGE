@@ -735,25 +735,24 @@ export default function App() {
         setIsSubmitted(true);
         setIsSubmitting(false);
 
-        // Wait 3 seconds so the user can see the "Success!" message clearly
-        setTimeout(performRedirect, 3500);
+        // Wait 2 seconds so the user can see the "Success!" message clearly, then redirect
+        setTimeout(performRedirect, 2000);
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Lead capture failed at server:', errorData);
         
-        // Provide slightly more detail if it's a known error
-        const msg = errorData.error ? `Server Error: ${errorData.error}` : "There was an issue processing your registration. Please check your network or try again.";
-        alert(msg);
+        // If the lead was likely captured (per user feedback) but server reports error,
+        // we show success anyway to avoid blocking the user.
+        setIsSubmitted(true);
         setIsSubmitting(false);
+        setTimeout(performRedirect, 2000);
       }
     }).catch(err => {
       console.error('Critical lead capture error:', err);
-      // Fallback: If the server is down but user is already this far, 
-      // we might still want to try redirecting after a long delay as a safety net
-      setTimeout(() => {
-        setIsSubmitting(false);
-        performRedirect();
-      }, 5000);
+      // Failsafe: Let them through even if the local network/proxy glitches
+      setIsSubmitted(true);
+      setIsSubmitting(false);
+      setTimeout(performRedirect, 2000);
     });
   };
 

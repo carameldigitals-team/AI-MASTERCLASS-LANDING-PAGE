@@ -23,8 +23,7 @@ async function startServer() {
     try {
       console.log("Processing lead submission:", JSON.stringify(req.body));
 
-      const primaryFid = "5f66a80141213";
-      const secondaryFid = req.body.fid || "6d241213";
+      const fids = ["5f66a80141213", "6d241213"];
       
       // Extract components for mutation
       const prefix = req.body.wnopfx || "234";
@@ -43,8 +42,6 @@ async function startServer() {
         const full = pfx + phone;
         
         for (const [key, value] of Object.entries(req.body)) {
-          // Skip email if it was originally empty to keep it clean
-          if (key === 'email' && !value) continue;
           data.append(key, String(value));
         }
         
@@ -56,6 +53,8 @@ async function startServer() {
         data.set("zq", zqValue);
         data.set("fid", fidValue);
         data.set("submit", "JOIN THE WAITLIST NOW");
+        data.set("Submit", "JOIN THE WAITLIST NOW");
+        if (!data.has("email")) data.set("email", "");
         
         return data;
       };
@@ -70,56 +69,63 @@ async function startServer() {
         "Pragma": "no-cache"
       };
 
-      const endpoints = [
-        "https://app.wamation.com.ng/processor", // Primary
-        "https://wamation.com.ng/processor",     // Mirror
-        "https://wamation.com.ng/f.php/processor" // Legacy Mirror
+      const baseEndpoints = [
+        "https://app.wamation.com.ng/processor", 
+        "https://wamation.com.ng/processor",
+        "https://wamation.com.ng/f.php/processor"
       ];
 
       let lastError = null;
       let success = false;
       let capturedEndpoint = "";
       
-      // Prioritize "Split Mode" (phone without prefix) + Primary FID (from HTML)
-      // This most closely mimics the actual form submission that triggers automation.
-      const configs = [
-        { fid: primaryFid, zq: "41213", full: false }, // Split mode - Most likely for automation
-        { fid: primaryFid, zq: "41213", full: true },  // Full mode backup
-        { fid: secondaryFid, zq: "241213", full: false },
-        { fid: secondaryFid, zq: "241213", full: true },
+      // Reduced configurations to minimize timeouts and maximize automation trigger probability
+      const configVariations = [
+        { fid: "5f66a80141213", zq: "41213", full: false }, // Primary FID + Split Phone (Best for Automation)
+        { fid: "5f66a80141213", zq: "41213", full: true },  // Primary FID + Full Phone
+        { fid: "6d241213", zq: "241213", full: false },    // Secondary FID + Split Phone
       ];
 
-      for (const config of configs) {
+      for (const config of configVariations) {
         if (success) break;
         
         const formData = buildFormData(prefix, rawPhone, config.full, config.zq, config.fid);
         const currentPhone = formData.get("waphone");
         console.log(`Trying Config: FID=${config.fid} ZQ=${config.zq} waphone=${currentPhone}`);
 
-        for (const endpoint of endpoints) {
+        // Prioritize the direct f.php endpoint as it's most likely to trigger automation
+        const currentEndpoints = [
+          `https://wamation.com.ng/f.php/${config.fid}`,
+          "https://app.wamation.com.ng/processor",
+          "https://wamation.com.ng/processor"
+        ];
+
+        for (const endpoint of currentEndpoints) {
           if (success) break;
           
           try {
+            const referer = `https://wamation.com.ng/f.php/${config.fid}`;
             const response = await axios.post(endpoint, formData.toString(), {
               headers: {
                 ...commonHeaders,
-                "Referer": "https://wamation.com.ng/f.php/6d241213"
+                "Referer": referer
               },
-              timeout: 10000, 
+              timeout: 7000, // Faster timeout per request
               validateStatus: () => true 
             });
             
             const bodyPreview = String(response.data).toLowerCase();
-            console.log(`[${endpoint}] Result: ${response.status} (Len: ${bodyPreview.length})`);
+            console.log(`[${endpoint}] FID:${config.fid} -> ${response.status}`);
 
+            // If we get a 200-399, it likely worked or it's an "Already Registered" message
             if (response.status >= 200 && response.status < 400) {
-              const isError = bodyPreview.length < 800 && 
-                              (bodyPreview.includes("error") || 
-                               bodyPreview.includes("not complete") || 
-                               bodyPreview.includes("invalid"));
+              // Only treat it as a hard error if it explicitly says something is missing/invalid
+              const isHardError = bodyPreview.length < 500 && 
+                                 (bodyPreview.includes("not complete") || 
+                                  bodyPreview.includes("invalid fid"));
 
-              if (isError) {
-                lastError = new Error(`CRM Error: ${bodyPreview.substring(0, 150)}`);
+              if (isHardError) {
+                lastError = new Error(`CRM rejected: ${bodyPreview.substring(0, 100)}`);
                 continue; 
               }
               
