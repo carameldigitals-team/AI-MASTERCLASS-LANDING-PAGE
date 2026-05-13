@@ -91,10 +91,10 @@ async function startServer() {
       let capturedEndpoint = "";
       
       const configVariations = [
-        { fid: "6d241213", zq: "241213", full: false },     // Primary URL-matched FID
-        { fid: "6d241213", zq: "1213", full: false },       // Common short ZQ variation
-        { fid: "5f66a80141213", zq: "41213", full: false }, // Previous known hidden FID
-        { fid: "5f66a80141213", zq: "241213", full: false } // Cross-match
+        { fid: "6d241213", zq: "241213", full: true },      // URL-matched primary (Full)
+        { fid: "6d241213", zq: "41213", full: true },       // Cross-match (Full)
+        { fid: "6d241213", zq: "241213", full: false },     // URL-matched primary (Split)
+        { fid: "5f66a80141213", zq: "41213", full: true },  // Hidden field FID (Full)
       ];
 
       for (const config of configVariations) {
@@ -114,13 +114,14 @@ async function startServer() {
           if (success) break;
           
           try {
-            // Priority: Send as standard form submission (no X-Requested-With)
-            const referer = endpoint.includes('f.php') ? endpoint : `https://wamation.com.ng/f.php/${config.fid}`;
+            // Referer is crucial for Wamation's automation triggers
+            const referer = `https://wamation.com.ng/f.php/${config.fid}`;
             
             const response = await axios.post(endpoint, formData.toString(), {
               headers: {
                 ...commonHeaders,
-                "Referer": referer
+                "Referer": referer,
+                "Upgrade-Insecure-Requests": "1"
               },
               timeout: 10000, 
               validateStatus: () => true 
@@ -128,23 +129,22 @@ async function startServer() {
             
             const body = String(response.data);
             const bodyLower = body.toLowerCase();
-            console.log(`[${endpoint}] Status: ${response.status} (Body: ${body.length})`);
+            console.log(`[${endpoint}] Code: ${response.status} | Size: ${body.length}`);
 
             // Detailed success check
             const isFailure = bodyLower.includes("not complete") || 
                               bodyLower.includes("invalid fid") ||
                               bodyLower.includes("fid mismatch") ||
-                              (body.length < 300 && bodyLower.includes("error"));
+                              (body.length < 500 && bodyLower.includes("error") && !bodyLower.includes("welcome"));
 
             // A 200/302 that isn't a known error page is a success.
-            // Wamation often redirects (302) on success.
             if ((response.status >= 200 && response.status < 400) && !isFailure) {
-              console.log(`[SUCCESS] Lead captured at ${endpoint} with FID ${config.fid}`);
+              console.log(`[SUCCESS] Captured via ${endpoint} for FID ${config.fid}`);
               success = true;
               capturedEndpoint = endpoint;
               break; 
             } else if (isFailure) {
-              console.warn(`[REJECTED] ${endpoint} returned error markers for FID ${config.fid}`);
+              console.warn(`[REJECTED] ${endpoint} for FID ${config.fid}: Error marker found`);
             }
           } catch (err: any) {
             console.warn(`[TIMEOUT/ERROR] ${endpoint} for FID ${config.fid}: ${err.message}`);
