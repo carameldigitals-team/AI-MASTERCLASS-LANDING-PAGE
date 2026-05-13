@@ -669,7 +669,7 @@ export default function App() {
     const fullPhone = prefix + rawPhone;
 
     const data: Record<string, string> = {
-      name: rawName, // Send full name
+      name: rawName,
       firstname: firstName,
       lastName: lastName,
       fname: firstName,
@@ -678,9 +678,9 @@ export default function App() {
       phone: fullPhone,
       wa_phone: fullPhone,
       email: '', 
-      zq: "41213", 
-      fid: "5f66a80141213", 
-      pid: "",
+      zq: "241213", 
+      fid: "6d241213", 
+      pid: "6d241213",
       bumppid: "0",
       cid: "",
       usp: "0",
@@ -697,29 +697,7 @@ export default function App() {
       redirectTriggered = true;
       
       console.log("Triggering redirect to:", whatsappUrl);
-      
-      // Try multiple methods to ensure one works
-      try {
-        // Method 1: location.replace (cleaner, no back history)
-        window.location.replace(whatsappUrl);
-      } catch (e1) {
-        try {
-          // Method 2: location.href (standard)
-          window.location.href = whatsappUrl;
-        } catch (e2) {
-          // Method 3: window.open (popup fallback)
-          window.open(whatsappUrl, '_blank');
-        }
-      }
-      
-      // If we are in an iframe, try to break out as a last resort
-      try {
-        if (window.top && window.top !== window) {
-          window.top.location.href = whatsappUrl;
-        }
-      } catch (e3) {
-        // Ignored: cross-origin frame constraints
-      }
+      window.location.href = whatsappUrl;
     };
 
     // We show a processing state but don't mark as "Submitted" until server confirms
@@ -731,32 +709,24 @@ export default function App() {
       body: JSON.stringify(data),
       keepalive: true,
     }).then(async (response) => {
+      // In all cases where the server finished its attempt loop, we proceed
+      // But we log success/failure for debugging
+      const result = await response.json().catch(() => ({}));
+      
       if (response.ok) {
-        const result = await response.json();
-        console.log('Lead captured successfully via:', result.endpoint);
-        
-        // ONLY mark as submitted once we have backend confirmation
-        setIsSubmitted(true);
-        setIsSubmitting(false);
-
-        // Wait 1.5 seconds so the user can see the "Success!" message clearly, then redirect
-        setTimeout(performRedirect, 1500);
+        console.log('Lead capture confirmed via proxy:', result.endpoint);
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Lead capture failed at server:', errorData);
-        
-        // If the lead was likely captured (per user feedback) but server reports error,
-        // we show success anyway to avoid blocking the user.
-        setIsSubmitted(true);
-        setIsSubmitting(false);
-        setTimeout(performRedirect, 1500);
+        console.warn('Lead capture proxy reported failure, but proceeding to redirect.');
       }
-    }).catch(err => {
-      console.error('Critical lead capture error:', err);
-      // Failsafe: Let them through even if the local network/proxy glitches
+      
       setIsSubmitted(true);
       setIsSubmitting(false);
-      setTimeout(performRedirect, 1500);
+      setTimeout(performRedirect, 2000);
+    }).catch(err => {
+      console.error('Network error during lead capture:', err);
+      setIsSubmitted(true);
+      setIsSubmitting(false);
+      setTimeout(performRedirect, 2000);
     });
   };
 

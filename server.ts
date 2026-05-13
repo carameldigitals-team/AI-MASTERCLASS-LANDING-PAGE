@@ -46,17 +46,17 @@ async function startServer() {
         const firstName = req.body.firstname || req.body.fname || rawName.split(' ')[0] || "";
         const lastName = req.body.lastName || (rawName.includes(' ') ? rawName.split(' ').slice(1).join(' ') : "");
 
-        // Exact field names and values from Wamation templates
+        // Exact field names found across various Wamation templates
         data.set("name", rawName);
         data.set("fname", firstName);
         data.set("firstname", firstName);
         data.set("wnopfx", pfx);
         data.set("waphone", useFullInWaphone ? full : phone);
+        data.set("phone", full);
+        data.set("wa_phone", full);
         
-        // Some forms use 'email' even if hidden, but we should only send it if we have it
-        if (req.body.email) {
-          data.set("email", req.body.email);
-        }
+        // Ensure email is set to a valid placeholder if missing; CRM integrations often require it
+        data.set("email", req.body.email || `lead_${phone}@wamation.com`);
 
         data.set("zq", zqValue);
         data.set("fid", fidValue);
@@ -91,10 +91,10 @@ async function startServer() {
       let capturedEndpoint = "";
       
       const configVariations = [
-        { fid: "6d241213", zq: "241213", full: false },     // URL FID (Priority)
-        { fid: "6d241213", zq: "1213", full: false },       // Short ZQ Variation
-        { fid: "5f66a80141213", zq: "41213", full: false }, // Hidden field FID
-        { fid: "5f66a80141213", zq: "41213", full: true },  
+        { fid: "6d241213", zq: "241213", full: false },     // Primary URL-matched FID
+        { fid: "6d241213", zq: "1213", full: false },       // Common short ZQ variation
+        { fid: "5f66a80141213", zq: "41213", full: false }, // Previous known hidden FID
+        { fid: "5f66a80141213", zq: "241213", full: false } // Cross-match
       ];
 
       for (const config of configVariations) {
@@ -137,15 +137,17 @@ async function startServer() {
                               (body.length < 300 && bodyLower.includes("error"));
 
             // A 200/302 that isn't a known error page is a success.
-            // Wamation often redirects on success.
+            // Wamation often redirects (302) on success.
             if ((response.status >= 200 && response.status < 400) && !isFailure) {
-              console.log(`[SUCCESS] Lead likely captured at ${endpoint} with FID ${config.fid}`);
+              console.log(`[SUCCESS] Lead captured at ${endpoint} with FID ${config.fid}`);
               success = true;
               capturedEndpoint = endpoint;
               break; 
+            } else if (isFailure) {
+              console.warn(`[REJECTED] ${endpoint} returned error markers for FID ${config.fid}`);
             }
           } catch (err: any) {
-            console.warn(`[FAIL] ${endpoint}: ${err.message}`);
+            console.warn(`[TIMEOUT/ERROR] ${endpoint} for FID ${config.fid}: ${err.message}`);
           }
         }
       }
