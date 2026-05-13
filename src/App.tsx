@@ -735,8 +735,8 @@ export default function App() {
         setIsSubmitted(true);
         setIsSubmitting(false);
 
-        // Wait 2 seconds so the user can see the "Success!" message clearly, then redirect
-        setTimeout(performRedirect, 2000);
+        // Wait 1.5 seconds so the user can see the "Success!" message clearly, then redirect
+        setTimeout(performRedirect, 1500);
       } else {
         const errorData = await response.json().catch(() => ({}));
         console.error('Lead capture failed at server:', errorData);
@@ -745,14 +745,14 @@ export default function App() {
         // we show success anyway to avoid blocking the user.
         setIsSubmitted(true);
         setIsSubmitting(false);
-        setTimeout(performRedirect, 2000);
+        setTimeout(performRedirect, 1500);
       }
     }).catch(err => {
       console.error('Critical lead capture error:', err);
       // Failsafe: Let them through even if the local network/proxy glitches
       setIsSubmitted(true);
       setIsSubmitting(false);
-      setTimeout(performRedirect, 2000);
+      setTimeout(performRedirect, 1500);
     });
   };
 

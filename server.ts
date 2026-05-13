@@ -79,17 +79,22 @@ async function startServer() {
       let success = false;
       let capturedEndpoint = "";
       
-      // Reduced configurations to minimize timeouts and maximize automation trigger probability
+      // Configurations to try
       const configVariations = [
-        { fid: "5f66a80141213", zq: "41213", full: false }, // Primary FID + Split Phone (Best for Automation)
-        { fid: "5f66a80141213", zq: "41213", full: true },  // Primary FID + Full Phone
-        { fid: "6d241213", zq: "241213", full: false },    // Secondary FID + Split Phone
+        { fid: "5f66a80141213", zq: "41213", full: false }, // Direct matched config (Split phone)
+        { fid: "5f66a80141213", zq: "41213", full: true },  // Full phone version
+        { fid: "6d241213", zq: "41213", full: false },      // Cross-match FID/ZQ
+        { fid: "6d241213", zq: "241213", full: false },     // Original known FID/ZQ
       ];
 
       for (const config of configVariations) {
         if (success) break;
         
         const formData = buildFormData(prefix, rawPhone, config.full, config.zq, config.fid);
+        // Ensure email is set to a placeholder if missing, some CRM integrations require it for indexing
+        if (!formData.get("email")) {
+          formData.set("email", `lead_${rawPhone}@wamation.com`);
+        }
         const currentPhone = formData.get("waphone");
         console.log(`Trying Config: FID=${config.fid} ZQ=${config.zq} waphone=${currentPhone}`);
 
