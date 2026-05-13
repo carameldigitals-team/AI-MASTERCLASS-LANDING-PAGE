@@ -39,69 +39,55 @@ async function startServer() {
 
       const buildFormData = (pfx: string, phone: string, useFullInWaphone: boolean, zqValue: string, fidValue: string) => {
         const data = new URLSearchParams();
-        const full = pfx + phone;
         
-        for (const [key, value] of Object.entries(req.body)) {
-          data.append(key, String(value));
-        }
-        
-        // Overwrite with normalized/specific values
+        // Exact field names from the Wamation form
+        data.set("name", req.body.name || "");
         data.set("wnopfx", pfx);
-        data.set("waphone", useFullInWaphone ? full : phone);
-        data.set("phone", full);
-        data.set("wa_phone", full);
+        data.set("waphone", useFullInWaphone ? (pfx + phone) : phone);
         data.set("zq", zqValue);
         data.set("fid", fidValue);
+        
+        // Hidden support fields from the original HTML to ensure backend acceptance
+        data.set("pid", "");
+        data.set("bumppid", "0");
+        data.set("cid", "");
+        data.set("usp", "0");
+        data.set("grk", "");
+        data.set("pvar", "");
         data.set("submit", "JOIN THE WAITLIST NOW");
-        data.set("Submit", "JOIN THE WAITLIST NOW");
-        if (!data.has("email")) data.set("email", "");
         
         return data;
       };
 
       const commonHeaders = {
         "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
-        "Origin": "https://wamation.com.ng",
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache"
+        "Origin": "https://wamation.com.ng"
       };
-
-      const baseEndpoints = [
-        "https://app.wamation.com.ng/processor", 
-        "https://wamation.com.ng/processor",
-        "https://wamation.com.ng/f.php/processor"
-      ];
 
       let lastError = null;
       let success = false;
       let capturedEndpoint = "";
       
-      // Configurations to try
       const configVariations = [
-        { fid: "5f66a80141213", zq: "41213", full: false }, // Direct matched config (Split phone)
-        { fid: "5f66a80141213", zq: "41213", full: true },  // Full phone version
-        { fid: "6d241213", zq: "41213", full: false },      // Cross-match FID/ZQ
-        { fid: "6d241213", zq: "241213", full: false },     // Original known FID/ZQ
+        { fid: "5f66a80141213", zq: "41213", full: false }, // Primary FID + Split Phone
+        { fid: "5f66a80141213", zq: "41213", full: true },  // Primary FID + Full Phone
+        { fid: "6d241213", zq: "241213", full: false },     // Secondary FID + Split Phone
       ];
 
       for (const config of configVariations) {
         if (success) break;
         
         const formData = buildFormData(prefix, rawPhone, config.full, config.zq, config.fid);
-        // Ensure email is set to a placeholder if missing, some CRM integrations require it for indexing
-        if (!formData.get("email")) {
-          formData.set("email", `lead_${rawPhone}@wamation.com`);
-        }
         const currentPhone = formData.get("waphone");
-        console.log(`Trying Config: FID=${config.fid} ZQ=${config.zq} waphone=${currentPhone}`);
+        console.log(`Submitting lead: Name=${req.body.name} Phone=${currentPhone} FID=${config.fid}`);
 
-        // Prioritize the direct f.php endpoint as it's most likely to trigger automation
+        // Prioritize the subdomain used in the form action
         const currentEndpoints = [
-          `https://wamation.com.ng/f.php/${config.fid}`,
           "https://app.wamation.com.ng/processor",
+          `https://wamation.com.ng/f.php/${config.fid}`,
           "https://wamation.com.ng/processor"
         ];
 
@@ -115,22 +101,20 @@ async function startServer() {
                 ...commonHeaders,
                 "Referer": referer
               },
-              timeout: 7000, // Faster timeout per request
+              timeout: 10000, 
               validateStatus: () => true 
             });
             
             const bodyPreview = String(response.data).toLowerCase();
-            console.log(`[${endpoint}] FID:${config.fid} -> ${response.status}`);
+            console.log(`[${endpoint}] Response status: ${response.status}`);
 
-            // If we get a 200-399, it likely worked or it's an "Already Registered" message
             if (response.status >= 200 && response.status < 400) {
-              // Only treat it as a hard error if it explicitly says something is missing/invalid
               const isHardError = bodyPreview.length < 500 && 
                                  (bodyPreview.includes("not complete") || 
                                   bodyPreview.includes("invalid fid"));
 
               if (isHardError) {
-                lastError = new Error(`CRM rejected: ${bodyPreview.substring(0, 100)}`);
+                lastError = new Error(`CRM rejected submission: ${bodyPreview.substring(0, 100)}`);
                 continue; 
               }
               
@@ -138,11 +122,11 @@ async function startServer() {
               capturedEndpoint = endpoint;
               break; 
             } else {
-              lastError = new Error(`Status ${response.status}`);
+              lastError = new Error(`HTTP ${response.status}`);
             }
           } catch (err: any) {
             lastError = err;
-            console.warn(`Connection to ${endpoint} failed: ${err.message}`);
+            console.warn(`Connection error to ${endpoint}: ${err.message}`);
           }
         }
       }
