@@ -41,21 +41,35 @@ async function startServer() {
         const data = new URLSearchParams();
         const full = pfx + phone;
         
-        // Exact field names and values from Wamation form
-        data.set("name", req.body.name || "");
-        data.set("email", req.body.email || `lead_${phone}@wamation.com`);
+        // Use provided names or fallback to placeholders
+        const rawName = req.body.name || "";
+        const firstName = req.body.firstname || req.body.fname || rawName.split(' ')[0] || "";
+        const lastName = req.body.lastName || (rawName.includes(' ') ? rawName.split(' ').slice(1).join(' ') : "");
+
+        // Exact field names and values from Wamation templates
+        data.set("name", rawName);
+        data.set("fname", firstName);
+        data.set("firstname", firstName);
         data.set("wnopfx", pfx);
         data.set("waphone", useFullInWaphone ? full : phone);
-        data.set("phone", full);
-        data.set("wa_phone", full);
+        
+        // Some forms use 'email' even if hidden, but we should only send it if we have it
+        if (req.body.email) {
+          data.set("email", req.body.email);
+        }
+
         data.set("zq", zqValue);
         data.set("fid", fidValue);
-        data.set("pid", "");
-        data.set("bumppid", "0");
-        data.set("cid", "");
-        data.set("usp", "0");
-        data.set("grk", "");
-        data.set("pvar", "");
+        
+        // Relational fields found in Wamation HTML
+        data.set("pid", fidValue);
+        data.set("bumppid", req.body.bumppid || "0");
+        data.set("cid", req.body.cid || "");
+        data.set("usp", req.body.usp || "0");
+        data.set("grk", req.body.grk || "");
+        data.set("pvar", req.body.pvar || "");
+        
+        // Submission markers
         data.set("submit", "JOIN THE WAITLIST NOW");
         data.set("Submit", "JOIN THE WAITLIST NOW");
         
@@ -68,7 +82,8 @@ async function startServer() {
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Origin": "https://wamation.com.ng",
-        "Connection": "keep-alive"
+        "Connection": "keep-alive",
+        "Cache-Control": "max-age=0"
       };
 
       let lastError = null;
@@ -76,11 +91,10 @@ async function startServer() {
       let capturedEndpoint = "";
       
       const configVariations = [
-        { fid: "5f66a80141213", zq: "41213", full: false }, // Primary FID from hidden field
+        { fid: "6d241213", zq: "241213", full: false },     // URL FID (Priority)
+        { fid: "6d241213", zq: "1213", full: false },       // Short ZQ Variation
+        { fid: "5f66a80141213", zq: "41213", full: false }, // Hidden field FID
         { fid: "5f66a80141213", zq: "41213", full: true },  
-        { fid: "6d241213", zq: "241213", full: false },     // FID from URL
-        { fid: "6d241213", zq: "41213", full: false },      // Cross-match
-        { fid: "6d241213", zq: "1213", full: false },       // Short ZQ
       ];
 
       for (const config of configVariations) {
@@ -91,8 +105,8 @@ async function startServer() {
         console.log(`[Lead Capture] Trying FID=${config.fid} | Phone=${currentPhone} | ZQ=${config.zq}`);
 
         const currentEndpoints = [
-          "https://app.wamation.com.ng/processor",
           `https://wamation.com.ng/f.php/${config.fid}`,
+          "https://app.wamation.com.ng/processor",
           "https://wamation.com.ng/processor"
         ];
 
@@ -100,16 +114,15 @@ async function startServer() {
           if (success) break;
           
           try {
-            // Try both the specific fid referer and the general wamation referer
+            // Priority: Send as standard form submission (no X-Requested-With)
             const referer = endpoint.includes('f.php') ? endpoint : `https://wamation.com.ng/f.php/${config.fid}`;
             
             const response = await axios.post(endpoint, formData.toString(), {
               headers: {
                 ...commonHeaders,
-                "Referer": referer,
-                "X-Requested-With": "XMLHttpRequest" // Some processors look for this
+                "Referer": referer
               },
-              timeout: 8000, 
+              timeout: 10000, 
               validateStatus: () => true 
             });
             
@@ -117,14 +130,16 @@ async function startServer() {
             const bodyLower = body.toLowerCase();
             console.log(`[${endpoint}] Status: ${response.status} (Body: ${body.length})`);
 
-            // Check if captured by searching for common success keywords or redirects
+            // Detailed success check
             const isFailure = bodyLower.includes("not complete") || 
                               bodyLower.includes("invalid fid") ||
                               bodyLower.includes("fid mismatch") ||
-                              (body.length < 500 && bodyLower.includes("error") && !bodyLower.includes("none"));
+                              (body.length < 300 && bodyLower.includes("error"));
 
-            if (response.status >= 200 && response.status < 400 && !isFailure) {
-              console.log(`[SUCCESS] Lead captured at ${endpoint} with FID ${config.fid}`);
+            // A 200/302 that isn't a known error page is a success.
+            // Wamation often redirects on success.
+            if ((response.status >= 200 && response.status < 400) && !isFailure) {
+              console.log(`[SUCCESS] Lead likely captured at ${endpoint} with FID ${config.fid}`);
               success = true;
               capturedEndpoint = endpoint;
               break; 
