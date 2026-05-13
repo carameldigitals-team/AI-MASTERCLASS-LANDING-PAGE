@@ -39,15 +39,17 @@ async function startServer() {
 
       const buildFormData = (pfx: string, phone: string, useFullInWaphone: boolean, zqValue: string, fidValue: string) => {
         const data = new URLSearchParams();
+        const full = pfx + phone;
         
-        // Exact field names from the Wamation form
+        // Exact field names and values from Wamation form
         data.set("name", req.body.name || "");
+        data.set("email", req.body.email || `lead_${phone}@wamation.com`);
         data.set("wnopfx", pfx);
-        data.set("waphone", useFullInWaphone ? (pfx + phone) : phone);
+        data.set("waphone", useFullInWaphone ? full : phone);
+        data.set("phone", full);
+        data.set("wa_phone", full);
         data.set("zq", zqValue);
         data.set("fid", fidValue);
-        
-        // Hidden support fields from the original HTML to ensure backend acceptance
         data.set("pid", "");
         data.set("bumppid", "0");
         data.set("cid", "");
@@ -55,6 +57,7 @@ async function startServer() {
         data.set("grk", "");
         data.set("pvar", "");
         data.set("submit", "JOIN THE WAITLIST NOW");
+        data.set("Submit", "JOIN THE WAITLIST NOW");
         
         return data;
       };
@@ -64,7 +67,8 @@ async function startServer() {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
-        "Origin": "https://wamation.com.ng"
+        "Origin": "https://wamation.com.ng",
+        "Connection": "keep-alive"
       };
 
       let lastError = null;
@@ -72,9 +76,11 @@ async function startServer() {
       let capturedEndpoint = "";
       
       const configVariations = [
-        { fid: "5f66a80141213", zq: "41213", full: false }, // Primary FID + Split Phone
-        { fid: "5f66a80141213", zq: "41213", full: true },  // Primary FID + Full Phone
-        { fid: "6d241213", zq: "241213", full: false },     // Secondary FID + Split Phone
+        { fid: "5f66a80141213", zq: "41213", full: false }, // Primary FID from hidden field
+        { fid: "5f66a80141213", zq: "41213", full: true },  
+        { fid: "6d241213", zq: "241213", full: false },     // FID from URL
+        { fid: "6d241213", zq: "41213", full: false },      // Cross-match
+        { fid: "6d241213", zq: "1213", full: false },       // Short ZQ
       ];
 
       for (const config of configVariations) {
@@ -82,9 +88,8 @@ async function startServer() {
         
         const formData = buildFormData(prefix, rawPhone, config.full, config.zq, config.fid);
         const currentPhone = formData.get("waphone");
-        console.log(`Submitting lead: Name=${req.body.name} Phone=${currentPhone} FID=${config.fid}`);
+        console.log(`[Lead Capture] Trying FID=${config.fid} | Phone=${currentPhone} | ZQ=${config.zq}`);
 
-        // Prioritize the subdomain used in the form action
         const currentEndpoints = [
           "https://app.wamation.com.ng/processor",
           `https://wamation.com.ng/f.php/${config.fid}`,
@@ -95,38 +100,37 @@ async function startServer() {
           if (success) break;
           
           try {
-            const referer = `https://wamation.com.ng/f.php/${config.fid}`;
+            // Try both the specific fid referer and the general wamation referer
+            const referer = endpoint.includes('f.php') ? endpoint : `https://wamation.com.ng/f.php/${config.fid}`;
+            
             const response = await axios.post(endpoint, formData.toString(), {
               headers: {
                 ...commonHeaders,
-                "Referer": referer
+                "Referer": referer,
+                "X-Requested-With": "XMLHttpRequest" // Some processors look for this
               },
-              timeout: 10000, 
+              timeout: 8000, 
               validateStatus: () => true 
             });
             
-            const bodyPreview = String(response.data).toLowerCase();
-            console.log(`[${endpoint}] Response status: ${response.status}`);
+            const body = String(response.data);
+            const bodyLower = body.toLowerCase();
+            console.log(`[${endpoint}] Status: ${response.status} (Body: ${body.length})`);
 
-            if (response.status >= 200 && response.status < 400) {
-              const isHardError = bodyPreview.length < 500 && 
-                                 (bodyPreview.includes("not complete") || 
-                                  bodyPreview.includes("invalid fid"));
+            // Check if captured by searching for common success keywords or redirects
+            const isFailure = bodyLower.includes("not complete") || 
+                              bodyLower.includes("invalid fid") ||
+                              bodyLower.includes("fid mismatch") ||
+                              (body.length < 500 && bodyLower.includes("error") && !bodyLower.includes("none"));
 
-              if (isHardError) {
-                lastError = new Error(`CRM rejected submission: ${bodyPreview.substring(0, 100)}`);
-                continue; 
-              }
-              
+            if (response.status >= 200 && response.status < 400 && !isFailure) {
+              console.log(`[SUCCESS] Lead captured at ${endpoint} with FID ${config.fid}`);
               success = true;
               capturedEndpoint = endpoint;
               break; 
-            } else {
-              lastError = new Error(`HTTP ${response.status}`);
             }
           } catch (err: any) {
-            lastError = err;
-            console.warn(`Connection error to ${endpoint}: ${err.message}`);
+            console.warn(`[FAIL] ${endpoint}: ${err.message}`);
           }
         }
       }

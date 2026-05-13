@@ -661,21 +661,25 @@ export default function App() {
     }
 
     const rawName = formData.get('name')?.toString().trim() || '';
-    const firstName = rawName.split(' ')[0];
+    const nameParts = rawName.split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+    
     const prefix = formData.get('wnopfx')?.toString() || '234';
     const fullPhone = prefix + rawPhone;
 
     const data: Record<string, string> = {
-      name: firstName,
+      name: rawName, // Send full name
       firstname: firstName,
+      lastName: lastName,
       fname: firstName,
       wnopfx: prefix,
-      waphone: fullPhone, // Try full phone here as well
+      waphone: fullPhone, 
       phone: fullPhone,
       wa_phone: fullPhone,
       email: '', 
-      zq: "41213", // Matched from wamation.com.ng/f.php/6d241213 inspection
-      fid: "5f66a80141213", // Matched from wamation.com.ng/f.php/6d241213 inspection
+      zq: "41213", 
+      fid: "5f66a80141213", 
       pid: "",
       bumppid: "0",
       cid: "",
