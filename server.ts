@@ -50,6 +50,10 @@ async function startServer() {
         data.set("name", rawName);
         data.set("fname", firstName);
         data.set("firstname", firstName);
+        data.set("first_name", firstName);
+        data.set("lname", lastName);
+        data.set("lastname", lastName);
+        data.set("last_name", lastName);
         data.set("wnopfx", pfx);
         data.set("waphone", useFullInWaphone ? full : phone);
         data.set("phone", full);
@@ -91,64 +95,94 @@ async function startServer() {
       let capturedEndpoint = "";
       
       const configVariations = [
-        { fid: "6d241213", zq: "241213", full: true },      // URL-matched primary (Full)
-        { fid: "6d241213", zq: "41213", full: true },       // Cross-match (Full)
-        { fid: "6d241213", zq: "241213", full: false },     // URL-matched primary (Split)
-        { fid: "5f66a80141213", zq: "41213", full: true },  // Hidden field FID (Full)
+        { fid: "6d241213", full: true },      
+        { fid: "6d241213", full: false },     
+        { fid: "5f66a80141213", full: true },  
       ];
 
       for (const config of configVariations) {
         if (success) break;
         
-        const formData = buildFormData(prefix, rawPhone, config.full, config.zq, config.fid);
-        const currentPhone = formData.get("waphone");
-        console.log(`[Lead Capture] Trying FID=${config.fid} | Phone=${currentPhone} | ZQ=${config.zq}`);
-
-        const currentEndpoints = [
-          `https://wamation.com.ng/f.php/${config.fid}`,
-          "https://app.wamation.com.ng/processor",
-          "https://wamation.com.ng/processor"
-        ];
-
-        for (const endpoint of currentEndpoints) {
-          if (success) break;
+        // Try to scrape exact ZQ from the form page first
+        let zqValue = (config.fid === "6d241213") ? "241213" : "41213"; // Defaults
+        try {
+          const formPage = await axios.get(`https://wamation.com.ng/f.php/${config.fid}`, {
+            headers: { "User-Agent": commonHeaders["User-Agent"] },
+            timeout: 5000
+          });
+          const zqMatch = formPage.data.match(/name=["']zq["']\s+value=["'](.*?)["']/i);
+          const fidMatch = formPage.data.match(/name=["']fid["']\s+value=["'](.*?)["']/i);
           
-          try {
-            // Referer is crucial for Wamation's automation triggers
-            const referer = `https://wamation.com.ng/f.php/${config.fid}`;
-            
-            const response = await axios.post(endpoint, formData.toString(), {
-              headers: {
-                ...commonHeaders,
-                "Referer": referer,
-                "Upgrade-Insecure-Requests": "1"
-              },
-              timeout: 10000, 
-              validateStatus: () => true 
-            });
-            
-            const body = String(response.data);
-            const bodyLower = body.toLowerCase();
-            console.log(`[${endpoint}] Code: ${response.status} | Size: ${body.length}`);
+          if (zqMatch && zqMatch[1]) {
+            zqValue = zqMatch[1];
+            console.log(`[SCRAPE] Found ZQ=${zqValue} for FID=${config.fid}`);
+          }
+          
+          let effectiveFid = config.fid;
+          if (fidMatch && fidMatch[1]) {
+            effectiveFid = fidMatch[1];
+            console.log(`[SCRAPE] Found internal FID=${effectiveFid} on page for ${config.fid}`);
+          }
 
-            // Detailed success check
-            const isFailure = bodyLower.includes("not complete") || 
+          const formData = buildFormData(prefix, rawPhone, config.full, zqValue, effectiveFid);
+          const currentPhone = formData.get("waphone");
+          console.log(`[Lead Capture] Trying FID=${effectiveFid} | Phone=${currentPhone} | ZQ=${zqValue}`);
+
+          const currentEndpoints = [
+            "https://app.wamation.com.ng/processor",
+            "https://wamation.com.ng/processor",
+            "https://wamation.com.ng/f.php/processor"
+          ];
+
+          for (const endpoint of currentEndpoints) {
+            if (success) break;
+            
+            try {
+              // Referer is absolutely critical for Wamation
+              const referer = `https://wamation.com.ng/f.php/${config.fid}`;
+              
+              const response = await axios.post(endpoint, formData.toString(), {
+                headers: {
+                  ...commonHeaders,
+                  "Referer": referer,
+                  "Upgrade-Insecure-Requests": "1"
+                },
+                timeout: 10000, 
+                validateStatus: () => true 
+              });
+              
+              const body = String(response.data);
+              const bodyLower = body.toLowerCase();
+              
+              // Check for success or specific redirect
+              const isError = bodyLower.includes("not complete") || 
                               bodyLower.includes("invalid fid") ||
                               bodyLower.includes("fid mismatch") ||
-                              (body.length < 500 && bodyLower.includes("error") && !bodyLower.includes("welcome"));
+                              (body.length < 1000 && bodyLower.includes("error") && !bodyLower.includes("welcome"));
 
-            // A 200/302 that isn't a known error page is a success.
-            if ((response.status >= 200 && response.status < 400) && !isFailure) {
-              console.log(`[SUCCESS] Captured via ${endpoint} for FID ${config.fid}`);
-              success = true;
-              capturedEndpoint = endpoint;
-              break; 
-            } else if (isFailure) {
-              console.warn(`[REJECTED] ${endpoint} for FID ${config.fid}: Error marker found`);
+              if ((response.status >= 200 && response.status < 400) && !isError) {
+                const weHaveSuccessMessage = bodyLower.includes("success") || 
+                                           bodyLower.includes("congratulations") || 
+                                           bodyLower.includes("welcome") ||
+                                           bodyLower.includes("received");
+                
+                if (response.status === 302 || weHaveSuccessMessage || body.length > 5000) {
+                   console.log(`[SUCCESS] Lead captured at ${endpoint} with FID ${effectiveFid}`);
+                   success = true;
+                   capturedEndpoint = endpoint;
+                   break;
+                }
+              }
+              
+              if (isError) {
+                console.warn(`[REJECTED] ${endpoint} for FID ${effectiveFid}: Error detected`);
+              }
+            } catch (err: any) {
+              console.warn(`[TIMEOUT/ERROR] ${endpoint} for FID ${effectiveFid}: ${err.message}`);
             }
-          } catch (err: any) {
-            console.warn(`[TIMEOUT/ERROR] ${endpoint} for FID ${config.fid}: ${err.message}`);
           }
+        } catch (e) {
+          console.warn(`[SCRAPE-FAIL] Error during attempt for FID ${config.fid}: ${e.message}`);
         }
       }
 
