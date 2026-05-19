@@ -677,9 +677,9 @@ export default function App() {
       waphone: rawPhone, 
       phone: fullPhone,
       wa_phone: fullPhone,
-      email: '', 
+      email: `lead_${fullPhone}@wamation.com`, 
       zq: "41213", 
-      fid: "6d241213", 
+      fid: "5f66a80141213", // Direct internal Wamation ID for 6d241213
       pid: "",
       bumppid: "0",
       cid: "",
@@ -689,6 +689,49 @@ export default function App() {
       Submit: "JOIN THE WAITLIST NOW",
       submit: "JOIN THE WAITLIST NOW"
     };
+
+    // Client-side Direct Submission Fallback (Crucial for static/serverless hosting like Cloudflare Pages)
+    try {
+      // 1. Check or create hidden iframe
+      let iframe = document.getElementById('wamation_hidden_iframe') as HTMLIFrameElement;
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.name = 'wamation_hidden_iframe';
+        iframe.id = 'wamation_hidden_iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+
+      // 2. Create dynamic form to submit to Wamation app processor directly from user's browser
+      const tempForm = document.createElement('form');
+      tempForm.method = 'POST';
+      tempForm.action = 'https://app.wamation.com.ng/processor';
+      tempForm.target = 'wamation_hidden_iframe';
+      tempForm.style.display = 'none';
+
+      // 3. Populate all lead fields exactly as Wamation expects
+      for (const [key, val] of Object.entries(data)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = val;
+        tempForm.appendChild(input);
+      }
+
+      // 4. Fire standard post request
+      document.body.appendChild(tempForm);
+      tempForm.submit();
+      console.log("[Client Submission] Successfully executed direct form submit to Wamation.");
+
+      // Clean up temporary form
+      setTimeout(() => {
+        if (tempForm.parentNode) {
+          tempForm.parentNode.removeChild(tempForm);
+        }
+      }, 1500);
+    } catch (err) {
+      console.warn("Client-side direct form post caught error:", err);
+    }
 
     // Failsafe Redirection
     let redirectTriggered = false;

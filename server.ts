@@ -34,6 +34,12 @@ async function startServer() {
     return fields;
   };
 
+  // Helper to extract form action attribute
+  const extractFormAction = (html: string) => {
+    const actionMatch = html.match(/<form[^>]+action=["']([^"']+)["']/i);
+    return actionMatch ? actionMatch[1] : "";
+  };
+
   // API Route for Waitlist (Wamation Proxy)
   app.post("/api/waitlist", async (req, res) => {
     try {
@@ -58,16 +64,30 @@ async function startServer() {
         "Connection": "keep-alive"
       };
 
-      // 1. Fetch form HTML dynamically to pull correct internal "fid" (e.g. 5f66a80141213) and "zq" (e.g. 41213)
+      // 1. Fetch form HTML dynamically to pull correct internal "fid", "zq" and the crucial PHPSESSID cookie!
       let parsedFields: Record<string, string> = {};
+      let phpSessionCookie = "";
+      let scrapedAction = "";
       try {
         console.log(`[SCRAPE] Fetching dynamic form structure for FID ${targetFid}...`);
         const formPage = await axios.get(`https://wamation.com.ng/f.php/${targetFid}`, {
           headers: commonHeaders,
           timeout: 6000
         });
+        
         parsedFields = extractHiddenFields(formPage.data);
-        console.log("[SCRAPE SUCCESS] Extracted active fields:", JSON.stringify(parsedFields));
+        scrapedAction = extractFormAction(formPage.data);
+
+        const setCookie = formPage.headers["set-cookie"];
+        if (setCookie) {
+          for (const cookie of setCookie) {
+            if (cookie.includes("PHPSESSID")) {
+              phpSessionCookie = cookie.split(";")[0];
+              break;
+            }
+          }
+        }
+        console.log(`[SCRAPE SUCCESS] Active fields extracted. Session Cookie: [${phpSessionCookie}], Custom Action: [${scrapedAction}]`);
       } catch (err: any) {
         console.warn(`[SCRAPE FALLBACK] Failed to scrape: ${err.message}. Using absolute known fallbacks for ${targetFid}.`);
       }
@@ -93,11 +113,16 @@ async function startServer() {
         { fullPhone: true }   // Variation B: full phone format (waphone=234803..., wnopfx=234)
       ];
 
-      const processorEndpoints = [
+      // Build endpoints list dynamically, placing the scraped form action first
+      const processorEndpoints: string[] = [];
+      if (scrapedAction && scrapedAction.startsWith("http")) {
+        processorEndpoints.push(scrapedAction);
+      }
+      processorEndpoints.push(
         "https://app.wamation.com.ng/processor",
         "https://wamation.com.ng/processor",
         "https://wamation.com.ng/f.php/processor"
-      ];
+      );
 
       let success = false;
       let capturedEndpoint = "";
@@ -150,7 +175,8 @@ async function startServer() {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Referer": referer,
                 "Upgrade-Insecure-Requests": "1",
-                "Origin": "https://wamation.com.ng"
+                "Origin": "https://wamation.com.ng",
+                ...(phpSessionCookie ? { "Cookie": phpSessionCookie } : {})
               },
               timeout: 10000,
               validateStatus: () => true
