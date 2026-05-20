@@ -377,7 +377,7 @@ const WaitlistForm = ({ idPrefix, isSubmitted, isSubmitting, setIsTermsOpen, han
         
         <div className="flex flex-col gap-4 mb-8">
           <a 
-            href="https://chat.whatsapp.com/GhvwoRbC0m9DwlcxFO1sCO?mlu=1&s=cl&p=a"
+            href="https://chat.whatsapp.com/E92sFYzQxFrH66d4w5cfJl?s=cl&p=a&mlu=1"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-3 bg-[#25D366] text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-green-500/20 hover:scale-105 active:scale-95 transition-all"
@@ -649,7 +649,7 @@ export default function App() {
     setIsSubmitting(true);
     
     // User requested redirect to WhatsApp
-    const whatsappUrl = "https://chat.whatsapp.com/GhvwoRbC0m9DwlcxFO1sCO?mlu=1&s=cl&p=a";
+    const whatsappUrl = "https://chat.whatsapp.com/E92sFYzQxFrH66d4w5cfJl?s=cl&p=a&mlu=1";
     
     const formData = new FormData(form);
     let rawPhone = formData.get('waphone')?.toString() || '';
