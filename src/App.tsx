@@ -690,26 +690,53 @@ export default function App() {
       submit: "JOIN THE WAITLIST NOW"
     };
 
-    // Client-side Direct Submission Fallback (Crucial for static/serverless hosting like Cloudflare Pages)
-    try {
-      // 1. Check or create hidden iframe
-      let iframe = document.getElementById('wamation_hidden_iframe') as HTMLIFrameElement;
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.name = 'wamation_hidden_iframe';
-        iframe.id = 'wamation_hidden_iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-      }
+    // Coordinated Failsafe Redirection
+    let redirectTriggered = false;
+    const performRedirect = () => {
+      if (redirectTriggered) return;
+      redirectTriggered = true;
+      setIsSubmitted(true);
+      setIsSubmitting(false);
+      console.log("Redirecting to WhatsApp:", whatsappUrl);
+      window.location.href = whatsappUrl;
+    };
 
-      // 2. Create dynamic form to submit to Wamation app processor directly from user's browser
+    // We show a processing state but coordinate the final redirect upon actual iframe load completion
+    setIsSubmitting(true);
+
+    // 1. Setup or retrieve the hidden iframe
+    let iframe = document.getElementById('wamation_hidden_iframe') as HTMLIFrameElement;
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.name = 'wamation_hidden_iframe';
+      iframe.id = 'wamation_hidden_iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    // A robust backup timeout (3.8 seconds) to ensure redirection even on slow/offline connections
+    const fallbackTimer = setTimeout(() => {
+      console.log("[Failsafe Delay] Standard completion limit reached. Redirecting to WhatsApp...");
+      performRedirect();
+    }, 3800);
+
+    // Iframe load triggers once the post request returns a response from Wamation's server
+    iframe.onload = () => {
+      console.log("[Iframe Onload] Form submission completed on Wamation servers. Proceeding to target redirect.");
+      clearTimeout(fallbackTimer);
+      // Slight delay for absolute browser stability, then redirect
+      setTimeout(performRedirect, 200);
+    };
+
+    // 2. Client-side Direct Submission into the iframe
+    try {
       const tempForm = document.createElement('form');
       tempForm.method = 'POST';
       tempForm.action = 'https://app.wamation.com.ng/processor';
       tempForm.target = 'wamation_hidden_iframe';
       tempForm.style.display = 'none';
 
-      // 3. Populate all lead fields exactly as Wamation expects
+      // Populate all lead fields exactly as Wamation expects
       for (const [key, val] of Object.entries(data)) {
         const input = document.createElement('input');
         input.type = 'hidden';
@@ -718,58 +745,37 @@ export default function App() {
         tempForm.appendChild(input);
       }
 
-      // 4. Fire standard post request
       document.body.appendChild(tempForm);
       tempForm.submit();
-      console.log("[Client Submission] Successfully executed direct form submit to Wamation.");
+      console.log("[Client Submission] Form submitted to iframe, coordinating onload completion...");
 
-      // Clean up temporary form
+      // Clean up temporary form element from DOM
       setTimeout(() => {
         if (tempForm.parentNode) {
           tempForm.parentNode.removeChild(tempForm);
         }
-      }, 1500);
+      }, 1000);
     } catch (err) {
       console.warn("Client-side direct form post caught error:", err);
     }
 
-    // Failsafe Redirection
-    let redirectTriggered = false;
-    const performRedirect = () => {
-      if (redirectTriggered) return;
-      redirectTriggered = true;
-      
-      console.log("Triggering redirect to:", whatsappUrl);
-      window.location.href = whatsappUrl;
-    };
-
-    // We show a processing state but don't mark as "Submitted" until server confirms
-    setIsSubmitting(true);
-
+    // 3. Concurrent Backend proxy call (Highly useful if backend is running on Applet container)
     fetch('/api/waitlist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
       keepalive: true,
     }).then(async (response) => {
-      // In all cases where the server finished its attempt loop, we proceed
-      // But we log success/failure for debugging
-      const result = await response.json().catch(() => ({}));
-      
       if (response.ok) {
-        console.log('Lead capture confirmed via proxy:', result.endpoint);
+        const result = await response.json().catch(() => ({}));
+        console.log('[API Proxy] Lead capture confirmed via proxy backend:', result.endpoint);
+        clearTimeout(fallbackTimer);
+        performRedirect();
       } else {
-        console.warn('Lead capture proxy reported failure, but proceeding to redirect.');
+        console.log('[API Proxy] Backend returned non-ok response. Waiting for iframe completion.');
       }
-      
-      setIsSubmitted(true);
-      setIsSubmitting(false);
-      setTimeout(performRedirect, 2000);
     }).catch(err => {
-      console.error('Network error during lead capture:', err);
-      setIsSubmitted(true);
-      setIsSubmitting(false);
-      setTimeout(performRedirect, 2000);
+      console.log('[API Proxy] Backend offline/static hosting. Waiting for iframe completion.');
     });
   };
 
